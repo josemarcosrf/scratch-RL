@@ -1,30 +1,52 @@
-# Dummy README
+# RL from scratch
 
-This is a dummy readme for the python repo template.
+This repo contains my from-scratch implementations of some common RL algorithms.
+
+The main goal is to do a deep dive by implementing, to go beyond the theoretical
+understanding.
 
 <!--ts-->
-   * [Dummy README](#dummy-readme)
+   * [RL from scratch](#rl-from-scratch)
       * [How To](#how-to)
+         * [Install](#install)
+         * [Run](#run)
 
-<!-- Added by: jose, at: Tue 15 Sep 14:24:29 CEST 2020 -->
+<!-- Added by: jose, at: jue 27 oct 2022 18:32:28 CEST -->
 
 <!--te-->
 
+
 ## How To
 
-To create a new repository using this one as a template, in github
-find and click on the `Use this template` green button on the top right corner.
+### Install
 
-Fill up the details and then clone it locally.
+1. Install mesa glx drivers:
 
-> **note**: Once cloned you'll need to **Rename your package**:
+```bash
+sudo apt-get install -y mesa-utils and libgl1-mesa-glx
+sudo apt-get install mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
+```
 
-1. Rename the `my_package` python module directory and all reference to it
+2. Create a virtual env with `python>=3.8`
 
-2. Replace `my_package` for your package name in the following files:
+```bash
+python3.8 -m venv .venv
+source .venv/bin/activate
+```
 
-  - Makefile
-  - setup.py
-  - scripts/build_docker.sh
-  - my_package/__init__.py
+3. Then install with:
 
+```bash
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+
+### Run
+
+> If at run time, when running and environtment with `render_mode="human"` you see:
+> `libGL error: MESA-LOADER`, you might need to run like:
+> ```bash
+> MESA_LOADER_DRIVER_OVERRIDE=i965 python <your-script.py>
+> ```
+> For more info check [this blogpost](https://devcodetutorial.com/faq/libgl-error-failed-to-load-drivers-iris-and-swrast-in-ubuntu-20-04)

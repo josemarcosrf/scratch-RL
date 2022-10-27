@@ -1,0 +1,8 @@
+coloredlogs>=15.0.1
+funcy>=1.17
+gym~=0.26.2
+halo>=0.0.31
+minigrid
+pygame~=2.1.0
+rich>=12.6.0
+tqdm>=4.64.1

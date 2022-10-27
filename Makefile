@@ -1,5 +1,6 @@
-.PHONY: clean test lint init check-readme
+.PHONY: clean formatter help init install lint pyupgrade readme-toc tag test types
 
+SHELL := /bin/bash
 JOBS ?= 1
 
 help:
@@ -17,15 +18,9 @@ help:
 	@echo "		Uses pyupgrade to upgrade python syntax."
 	@echo "	readme-toc"
 	@echo "			Generate a Table Of Content for the README.md"
-	@echo "	check-readme"
-	@echo "		Check if the README can be converted from .md to .rst for PyPI."
 	@echo "	test"
 	@echo "		Run pytest on tests/."
 	@echo "		Use the JOBS environment variable to configure number of workers (default: 1)."
-	@echo "	build-docker"
-	@echo "		Build package's docker image"
-	@echo "	upload-package"
-	@echo "		Upload package to Melior Pypi server"
 	@echo " git-tag"
 	@echo "		Create a git tag based on the current pacakge version and push"
 
@@ -67,29 +62,17 @@ readme-toc:
 	find . -type d \( -path ./.venv \) -prune -o \
 	    -name README.md -exec gh-md-toc --insert {} \;
 
-# if this runs through we can be sure the readme is properly shown on pypi
-check-readme:
-	python setup.py check --restructuredtext --strict
 
 test: clean
 	# OMP_NUM_THREADS can improve overral performance using one thread by process (on tensorflow), avoiding overload
 	OMP_NUM_THREADS=1 pytest tests -n $(JOBS) --cov my_package
 
-build-docker:
-	# Examples:
-	# make build-docker version=0.1
-	./scripts/build_docker.sh $(version)
 
-upload-package: clean
-	python setup.py sdist
-	twine upload dist/* -r melior
-
+.ONESHELL:
 tag:
-	git tag $$( python -c 'import my_package; print(my_package.__version__)' )
+	git tag $$( cat setup.cfg | grep version | awk -F' = ' '{print $$2}' )
 	git push --tags
 
-setup-dvc:
-	# Configure https://mai-dvc.ams3.digitaloceanspaces.com as remote storage
-	dvc init
-	dvc remote add -d $(remote) s3://mai-dvc/$(remote)
-	dvc remote modify $(remote) endpointurl https://ams3.digitaloceanspaces.com
+
+list:
+	@LC_ALL=C $(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
