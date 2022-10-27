@@ -5,19 +5,17 @@ from logging import Logger
 
 import tqdm
 
-from my_package import version
-from my_package.constants import DEFAULT_LOG_DIR
+
+from common.constants import DEFAULT_LOG_DIR
 
 LOG_DIR = os.getenv("LOG_DIR", DEFAULT_LOG_DIR)
-
-
-__version__ = version.__version__
 
 
 logger = logging.getLogger(__name__)
 
 
 class TqdmStream(object):
+
     @classmethod
     def write(_, msg):
         tqdm.tqdm.write(msg, end="")
@@ -40,7 +38,7 @@ def get_default_config(
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "standard": {"format": fmt,},
+            "standard": {"format": fmt, },
             "colored": {
                 "()": "coloredlogs.ColoredFormatter",
                 "fmt": fmt,
@@ -76,10 +74,10 @@ def get_default_config(
             },
         },
         "loggers": {
-            _logger.name: {"handlers": ["console"], "level": level,},
-            "pika": {"handlers": ["console"], "level": "WARNING",},
-            "asyncio": {"level": "WARNING",},
-            "filelock": {"level": "WARNING",},
+            _logger.name: {"handlers": ["console"], "level": level, },
+            "pika": {"handlers": ["console"], "level": "WARNING", },
+            "asyncio": {"level": "WARNING", },
+            "filelock": {"level": "WARNING", },
         },
     }
 
