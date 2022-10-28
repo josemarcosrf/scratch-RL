@@ -58,7 +58,7 @@ class TabularQLearning:
             next_s (int): next state (usually denoted as: s')
         """
         self.Q[s, a] += self.alpha * (
-            r + self.gamma * np.argmax(self.Q[next_s, :], axis=-1) - self.Q[s, a]
+            r + self.gamma * np.max(self.Q[next_s, :], axis=-1) - self.Q[s, a]
         )
 
     def train(

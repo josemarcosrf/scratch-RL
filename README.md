@@ -53,3 +53,14 @@ pip install -r requirements-dev.txt
 > MESA_LOADER_DRIVER_OVERRIDE=i965 python <your-script.py>
 > ```
 > For more info check [this blogpost](https://devcodetutorial.com/faq/libgl-error-failed-to-load-drivers-iris-and-swrast-in-ubuntu-20-04)
+
+
+Examples:
+
+```bash
+ # SARSA on CLiff World
+python -m algorithms.tabular.sarsa -e CliffWalking-v0
+
+# Q-learning on Frozen lake
+python -m algorithms.tabular.q_learning -e FrozenLake-v1
+```
