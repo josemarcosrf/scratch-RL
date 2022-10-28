@@ -1,9 +1,8 @@
 import logging
 import random
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
 from tabulate import tabulate
 from tqdm.auto import tqdm
 
@@ -13,8 +12,8 @@ from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
 from helpers.environments import get_env_action_name_map
 from helpers.environments import get_env_map_shape
-from helpers.plotting import plot_vector_field
 from helpers.plotting import plot_line
+from helpers.plotting import plot_vector_field
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ class TabularSARSA:
         self.action_map = get_env_action_name_map(env)
         self.h, self.w = get_env_map_shape(env)
         self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        self.Q[-1,:] = 0
+        self.Q[-1, :] = 0
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon

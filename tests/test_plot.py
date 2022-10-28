@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
-from helpers.plotting import *
+from helpers.plotting import plot_heatmap
+from helpers.plotting import plot_line
 
 
 def many_subplots():

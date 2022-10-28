@@ -11,12 +11,12 @@ def plot_heatmap(
     row_labels: str = None,
     col_labels: str = None,
     save_fpath: str = None,
-    ax = None,
+    ax=None,
 ) -> None:
     if ax is None:
         fig, ax = plt.subplots(figsize=DEFAULT_FIG_SIZE)
 
-    heatmap = ax.pcolor(m, cmap=plt.cm.Blues)
+    # heatmap = ax.pcolor(m, cmap=plt.cm.Blues)
 
     ax.set_yticks(np.arange(m.shape[0]) + 0.5, minor=False)
     ax.set_xticks(np.arange(m.shape[1]) + 0.5, minor=False)
@@ -38,7 +38,7 @@ def plot_heatmap(
         return ax
 
 
-def plot_line(x, title: str = None, save_fpath: str = None, ax = None) -> None:
+def plot_line(x, title: str = None, save_fpath: str = None, ax=None) -> None:
     if ax is None:
         fig, ax = plt.subplots(figsize=DEFAULT_FIG_SIZE)
 
@@ -54,7 +54,7 @@ def plot_line(x, title: str = None, save_fpath: str = None, ax = None) -> None:
 
 
 def plot_vector_field(
-    u: np.ndarray, v: np.ndarray, title: str = None, save_fpath: str = None, ax = None
+    u: np.ndarray, v: np.ndarray, title: str = None, save_fpath: str = None, ax=None
 ):
     """Given 2D vectors with components U, V (x, y) plots a vector field
     and displays or saves as a png file.
@@ -66,7 +66,7 @@ def plot_vector_field(
     x, y = np.meshgrid(np.arange(0, w, 1.0), np.arange(0, h, 1.0))
 
     ax.set_xticks(x[0])
-    ax.set_yticks([l[0] for l in y])
+    ax.set_yticks([p[0] for p in y])  # noqa
 
     # Plotting Vector Field with QUIVER
     ax.quiver(x + 0.5, y + 0.5, u, v, color="b")

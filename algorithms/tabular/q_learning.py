@@ -1,9 +1,8 @@
 import logging
 import random
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
 from tabulate import tabulate
 from tqdm.auto import tqdm
 
@@ -36,7 +35,7 @@ class TabularQLearning:
         self.h, self.w = get_env_map_shape(env)
         # self.Q = np.zeros((self.n_states, self.n_actions))
         self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        self.Q[-1,:] = 0
+        self.Q[-1, :] = 0
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -117,7 +116,6 @@ class TabularQLearning:
         # Print the policy over the map
         self.print_policy()
         self.env.close()
-
 
     def print_policy(self):
         q = self.Q.reshape(self.h, self.w, self.n_actions)
