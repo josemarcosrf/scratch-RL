@@ -43,15 +43,15 @@ clean:
 	# rm -rf pip-wheel-metadata
 
 formatter:
-	black my_package --exclude tests/
+	black . --exclude .venv/
 
 lint:
-	flake8 my_package tests --exclude tests/
-	black --check my_package tests --exclude tests/
+	flake8 . --exclude .venv/
+	black --check . --exclude .venv/
 
 types:
 	# https://google.github.io/pytype/
-	pytype --keep-going my_package --exclude my_package/tests
+	pytype --keep-going . --exclude m.venv/
 
 pyupgrade:
 	find . -type d \( -path ./.venv \) -prune -o \

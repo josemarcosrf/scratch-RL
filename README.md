@@ -5,6 +5,9 @@ This repo contains my from-scratch implementations of some common RL algorithms.
 The main goal is to do a deep dive by implementing, to go beyond the theoretical
 understanding.
 
+Therefore it is structured with simplicity in mind, with each algorithm being
+self contained and in a single file.
+
 <!--ts-->
    * [RL from scratch](#rl-from-scratch)
       * [How To](#how-to)

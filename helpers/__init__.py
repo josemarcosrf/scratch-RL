@@ -2,11 +2,12 @@ import logging.config
 import os
 import sys
 from logging import Logger
+from typing import Any
+from typing import Dict
 
 import tqdm
 
-
-from common.constants import DEFAULT_LOG_DIR
+from helpers.constants import DEFAULT_LOG_DIR
 
 LOG_DIR = os.getenv("LOG_DIR", DEFAULT_LOG_DIR)
 
@@ -15,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class TqdmStream(object):
-
     @classmethod
     def write(_, msg):
         tqdm.tqdm.write(msg, end="")
@@ -31,14 +31,19 @@ def disable_lib_loggers():
 
 
 def get_default_config(
-    level: str, fmt: str, filename: str = None, my_logger: Logger = None,
+    level: str,
+    fmt: str,
+    filename: str = None,
+    my_logger: Logger = None,
 ):
     _logger = my_logger or logger
-    config_logging = {
+    config_logging: Dict[str, Any] = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "standard": {"format": fmt, },
+            "standard": {
+                "format": fmt,
+            },
             "colored": {
                 "()": "coloredlogs.ColoredFormatter",
                 "fmt": fmt,
@@ -74,10 +79,20 @@ def get_default_config(
             },
         },
         "loggers": {
-            _logger.name: {"handlers": ["console"], "level": level, },
-            "pika": {"handlers": ["console"], "level": "WARNING", },
-            "asyncio": {"level": "WARNING", },
-            "filelock": {"level": "WARNING", },
+            _logger.name: {
+                "handlers": ["console"],
+                "level": level,
+            },
+            "pika": {
+                "handlers": ["console"],
+                "level": "WARNING",
+            },
+            "asyncio": {
+                "level": "WARNING",
+            },
+            "filelock": {
+                "level": "WARNING",
+            },
         },
     }
 
@@ -105,10 +120,10 @@ def init_logger(
     log_dir: str = None,
     fmt="%(asctime)s,%(msecs)03d %(levelname)-8s %(name)-45s:%(lineno)3d - %(message)-50s",
 ):
-    """ Configures the given logger; format, logging level, style, etc """
+    """Configures the given logger; format, logging level, style, etc"""
 
     def add_notice_log_level():
-        """ Creates a new 'notice' logging level """
+        """Creates a new 'notice' logging level"""
         # inspired by:
         # https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility
         NOTICE_LEVEL_NUM = 25
