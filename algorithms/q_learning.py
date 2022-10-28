@@ -3,10 +3,10 @@ import gym
 import random
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from tqdm.auto import tqdm
 from common.constants import DEFAULT_RANDOM_SEED
+from common.plotting import plot_vector_field
 
 
 class TabularSARSA:
@@ -68,7 +68,8 @@ class TabularSARSA:
         return next_a
 
     def plot_q(self, h: int, w: int):
-        """Summary
+        """Transforms the Q table into a vector field representation of
+        the agents action preferences.
 
         NOTE: numpy and pyplot have swapped axis!
         NOTE: The plot is flipped on the Y axis (axis=0 for numpy)
@@ -79,16 +80,27 @@ class TabularSARSA:
             h (int): Grid world height
             w (int): Grid world width
         """
+        # # Max over actions
+        # q = np.argmax(self.Q.reshape(h, w, self.na), axis=-1)
 
-        # Meshgrid
-        x, y = np.meshgrid(np.arange(0, w, 1.0), np.arange(0, h, 1.0))
+        # # Translate action indices to vectors
+        # v_map = {
+        #     0: (0, 1),  # up
+        #     1: (1, 0),  # right
+        #     2: (0, -1),  # down
+        #     3: (-1, 0),  # left
+        # }
+        # # Decompose vectors into its U and V components
+        # ufunc = np.vectorize(lambda x: v_map[x][0])
+        # u = ufunc(q)
 
-        ax = plt.axes()
-        ax.set_xticks(x[0])
-        ax.set_yticks([l[0] for l in y])
+        # vfunc = np.vectorize(lambda x: v_map[x][1])
+        # v = vfunc(q)
 
-        q = self.Q.reshape(h, w, self.na).copy()
+        q = self.Q.reshape(h, w, self.na)
+        # Q-values are negative so we need to take the opposite dir as vectors
 
+        # NOTE: This directions are only correct for the Cliff env!
         # RIGHT - LEFT
         u = q[:, :, 1] - q[:, :, 3]
         u /= np.maximum(1, np.maximum(q[:, :, 1], q[:, :, 3]))
@@ -96,32 +108,37 @@ class TabularSARSA:
         v = q[:, :, 0] - q[:, :, 2]
         v /= np.maximum(1, np.maximum(q[:, :, 0], q[:, :, 2]))
 
-        # Plotting Vector Field with QUIVER
-        # Note the swapped axis
-        plt.quiver(x + 0.5, y + 0.5, v, -u, color="g")
-        plt.title("Q table")
-
-        # Setting x, y boundary limits
-        plt.xlim(0, w)
-        plt.ylim(h, 0)  # flipped y-axis
-
-        # Show plot with grid
-        plt.grid()
-        plt.show()
+        plot_vector_field(u, v, save_fpath="vfield.png")
 
 
 if __name__ == "__main__":
 
-    NUM_EPISODES = 500
+    NUM_EPISODES = 1000
     MAX_EP_STEPS = 500
 
-    env = gym.make("CliffWalking-v0", render_mode=None)  # "human"
+    env_meta = {
+        "CliffWalking-v0": {
+            "map_shape": (4, 12),
+            "params": {}
+        },
+        "FrozenLake-v1": {
+            "map_shape": (4, 4),
+            "params": {
+                "map_name": "4x4",
+                "is_slippery": True,
+                "desc": ["SFFF", "FHFH", "FFFH", "HFFG"]
+            }
+        }
+    }
+    # NOTE: The action index for UP, DOWN, LEFT, RIGHT change between envs!
+    env_name = "FrozenLake-v1"
+    env = gym.make('FrozenLake-v1', **env_meta[env_name]["params"])
 
     agent = TabularSARSA(
         n_states=env.observation_space.n,
         n_actions=env.action_space.n,
-        step_size=0.05,
-        discount=0.95,
+        step_size=0.01,
+        discount=0.99,
         epsilon=0.1,
     )
 
@@ -150,6 +167,6 @@ if __name__ == "__main__":
                 state = next_state
 
     # Plot the action preference
-    agent.plot_q(4, 12)
+    agent.plot_q(*env_meta[env_name]["map_shape"])
 
     env.close()
