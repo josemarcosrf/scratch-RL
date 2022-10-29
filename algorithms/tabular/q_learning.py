@@ -103,6 +103,8 @@ class TabularQLearning:
 
                 # Chose A' from S' using policy derived from Q
                 self.observe(state, action, reward, next_state)
+                if terminated or truncated:
+                    break
 
                 # Collect some stats
                 self.stats["ep_length"][ep_i] = i
@@ -110,17 +112,20 @@ class TabularQLearning:
                 self.stats["visits"][state, action] += 1
 
                 state = next_state
-                if terminated or truncated:
-                    break
 
         # Print the policy over the map
-        self.print_policy()
         self.env.close()
+        self.print_policy()
 
     def print_policy(self):
         q = self.Q.reshape(self.h, self.w, self.n_actions)
-        f = np.vectorize(lambda x: self.action_map[x] if x != 0 else ".")
-        table = [f(np.argmax(row, axis=-1)) for row in q]
+        action_func = np.vectorize(lambda x: self.action_map[x])
+        table = [action_func(np.argmax(row, axis=-1)) for row in q]
+
+        for i in range(self.h):
+            for j in range(self.w):
+                if sum(self.stats["visits"][i * self.w + j]) == 0:
+                    table[i][j] = "x"
         print(tabulate(table, tablefmt="simple_grid"))
 
 
@@ -132,7 +137,6 @@ if __name__ == "__main__":
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
-    env.action_space.seed(DEFAULT_RANDOM_SEED)
     env.action_space.seed(DEFAULT_RANDOM_SEED)
 
     logger.info("Initializing agent")

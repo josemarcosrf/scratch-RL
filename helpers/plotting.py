@@ -44,7 +44,7 @@ def plot_line(x, title: str = None, save_fpath: str = None, ax=None) -> None:
 
     ax.plot(x)
     ax.set_title(title)
-    ax.set_xticks(range(len(x)))
+    # ax.set_xticks(range(len(x)))
 
     if save_fpath:
         plt.savefig(save_fpath)

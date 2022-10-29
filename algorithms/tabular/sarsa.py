@@ -107,24 +107,31 @@ class TabularSARSA:
                 next_action = self.run_policy(next_state)
                 action = self.observe(state, action, reward, next_state, next_action)
 
+                if terminated or truncated:
+                    break
+
                 # Collect some stats
                 self.stats["ep_length"][ep_i] = i
                 self.stats["ep_rewards"][ep_i] += reward
                 self.stats["visits"][state, action] += 1
 
                 state = next_state
-                if terminated or truncated:
-                    break
 
-        # Plot the action preference
+        # Print the policy over the map
         self.env.close()
-        self._print_policy()
+        self.print_policy()
         # self._plot_q()
 
-    def _print_policy(self):
+    def print_policy(self):
         q = self.Q.reshape(self.h, self.w, self.n_actions)
-        f = np.vectorize(lambda x: self.action_map[x] if x != 0 else ".")
-        table = [f(np.argmax(row, axis=-1)) for row in q]
+        action_func = np.vectorize(lambda x: self.action_map[x])
+        table = [action_func(np.argmax(row, axis=-1)) for row in q]
+
+        for i in range(self.h):
+            for j in range(self.w):
+                if sum(self.stats["visits"][i * self.w + j]) == 0:
+                    table[i][j] = "x"
+
         print(tabulate(table, tablefmt="simple_grid"))
 
     def _plot_q(self, save_fpath: str = None):
