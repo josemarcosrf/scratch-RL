@@ -24,7 +24,7 @@ ENV_META: Dict[str, Dict[str, Any]] = {
         },
         "params": {
             "map_name": "4x4",
-            "is_slippery": True,
+            "is_slippery": False,
             "desc": ["SFFF", "FHFH", "FFFH", "HFFG"],
         },
     },

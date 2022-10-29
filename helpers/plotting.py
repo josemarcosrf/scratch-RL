@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-DEFAULT_FIG_SIZE = (15, 10)
+DEFAULT_FIG_SIZE = (20, 10)
 
 
 def plot_heatmap(
@@ -16,10 +16,11 @@ def plot_heatmap(
     if ax is None:
         fig, ax = plt.subplots(figsize=DEFAULT_FIG_SIZE)
 
-    # heatmap = ax.pcolor(m, cmap=plt.cm.Blues)
+    ax.pcolor(m, cmap=plt.cm.Blues)
+    # ax.colorbar(heatmap)
 
-    ax.set_yticks(np.arange(m.shape[0]) + 0.5, minor=False)
-    ax.set_xticks(np.arange(m.shape[1]) + 0.5, minor=False)
+    ax.set_yticks(np.arange(m.shape[0]), minor=False)
+    ax.set_xticks(np.arange(m.shape[1]), minor=False)
     ax.invert_yaxis()
 
     if row_labels:
@@ -29,7 +30,6 @@ def plot_heatmap(
 
     ax.set_title(title)
     ax.grid()
-    # ax.colorbar(heatmap)
 
     if save_fpath:
         plt.savefig(save_fpath)

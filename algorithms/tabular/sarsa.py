@@ -12,6 +12,7 @@ from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
 from helpers.environments import get_env_action_name_map
 from helpers.environments import get_env_map_shape
+from helpers.plotting import plot_heatmap
 from helpers.plotting import plot_line
 from helpers.plotting import plot_vector_field
 
@@ -34,8 +35,9 @@ class TabularSARSA:
         self.env = env
         self.action_map = get_env_action_name_map(env)
         self.h, self.w = get_env_map_shape(env)
-        self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        self.Q[-1, :] = 0
+        self.Q = np.zeros((self.n_states, self.n_actions))
+        # self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
+        # self.Q[-1, :] = 0
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -179,8 +181,12 @@ if __name__ == "__main__":
         epsilon=0.1,
     )
 
-    fig, axis = plt.subplots(1, 2, figsize=(15, 10))
+    fig, axis = plt.subplots(1, 3, figsize=(20, 10))
     plot_line(agent.stats["ep_rewards"], title="Episode rewards", ax=axis[0])
     plot_line(agent.stats["ep_length"], title="Episode length", ax=axis[1])
+
+    state_visits = np.sum(agent.stats["visits"], axis=-1).reshape(agent.h, agent.w)
+    logger.debug(state_visits)
+    plot_heatmap(state_visits, title="state visits", ax=axis[2])
 
     plt.show()

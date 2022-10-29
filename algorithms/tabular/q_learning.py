@@ -12,6 +12,7 @@ from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
 from helpers.environments import get_env_action_name_map
 from helpers.environments import get_env_map_shape
+from helpers.plotting import plot_heatmap
 from helpers.plotting import plot_line
 
 
@@ -33,9 +34,9 @@ class TabularQLearning:
         self.env = env
         self.action_map = get_env_action_name_map(env)
         self.h, self.w = get_env_map_shape(env)
-        # self.Q = np.zeros((self.n_states, self.n_actions))
-        self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        self.Q[-1, :] = 0
+        self.Q = np.zeros((self.n_states, self.n_actions))
+        # self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
+        # self.Q[-1, :] = 0
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -92,17 +93,17 @@ class TabularQLearning:
         for ep_i in episode_iter:
             episode_iter.set_description(f"Episode: {ep_i}")
 
-            # Init S & chose A from S using policy derived from Q
+            # Init S
             state, _ = self.env.reset()
 
             for i in range(max_ep_steps):
+                # Chose A from S
                 action = self.run_policy(state)
 
                 # Take action A, observe S' and R
                 next_state, reward, terminated, truncated, info = self.env.step(action)
-
-                # Chose A' from S' using policy derived from Q
                 self.observe(state, action, reward, next_state)
+
                 if terminated or truncated:
                     break
 
@@ -126,6 +127,7 @@ class TabularQLearning:
             for j in range(self.w):
                 if sum(self.stats["visits"][i * self.w + j]) == 0:
                     table[i][j] = "x"
+
         print(tabulate(table, tablefmt="simple_grid"))
 
 
@@ -149,8 +151,12 @@ if __name__ == "__main__":
         epsilon=0.1,
     )
 
-    fig, axis = plt.subplots(1, 2, figsize=(15, 10))
+    fig, axis = plt.subplots(1, 3, figsize=(15, 10))
     plot_line(agent.stats["ep_rewards"], title="Episode rewards", ax=axis[0])
     plot_line(agent.stats["ep_length"], title="Episode length", ax=axis[1])
+
+    state_visits = np.sum(agent.stats["visits"], axis=-1).reshape(agent.h, agent.w)
+    logger.debug(state_visits)
+    plot_heatmap(state_visits, title="state visits", ax=axis[2])
 
     plt.show()
