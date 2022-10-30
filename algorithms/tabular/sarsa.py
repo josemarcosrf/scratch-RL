@@ -35,9 +35,9 @@ class TabularSARSA:
         self.env = env
         self.action_map = get_env_action_name_map(env)
         self.h, self.w = get_env_map_shape(env)
-        self.Q = np.zeros((self.n_states, self.n_actions))
-        # self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        # self.Q[-1, :] = 0
+        # self.Q = np.zeros((self.n_states, self.n_actions))
+        self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
+        self.Q[-1, :] = 0
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -176,9 +176,9 @@ if __name__ == "__main__":
     agent.train(
         num_episodes=args.num_episodes,
         max_ep_steps=args.num_steps,
-        step_size=0.5,
-        discount=0.95,
-        epsilon=0.1,
+        step_size=args.step_size,
+        discount=args.discount_factor,
+        epsilon=args.explore_probability,
     )
 
     fig, axis = plt.subplots(1, 3, figsize=(20, 10))

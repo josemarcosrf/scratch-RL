@@ -1,8 +1,11 @@
 import argparse
 
-from helpers.constants import DEEFAULT_MAX_EP_STEPS
-from helpers.constants import DEEFAULT_NUM_EPISODES
+from helpers.constants import DEFAULT_DISCOUNT_FACTOR
 from helpers.constants import DEFAULT_ENV_RENDER_MODES
+from helpers.constants import DEFAULT_EXPLORE_PROBABILITY
+from helpers.constants import DEFAULT_MAX_EP_STEPS
+from helpers.constants import DEFAULT_NUM_EPISODES
+from helpers.constants import DEFAULT_STEP_SIZE
 from helpers.environments import ENV_META
 
 
@@ -38,15 +41,36 @@ def make_train_options(parser: argparse.ArgumentParser):
         "--num-episodes",
         "-ne",
         type=int,
-        default=DEEFAULT_NUM_EPISODES,
+        default=DEFAULT_NUM_EPISODES,
         help="The max number of training episodes",
     )
     parser.add_argument(
         "--num-steps",
         "-ns",
         type=int,
-        default=DEEFAULT_MAX_EP_STEPS,
+        default=DEFAULT_MAX_EP_STEPS,
         help="The max number of training steps per episode",
+    )
+    parser.add_argument(
+        "--step-size",
+        "-st",
+        type=float,
+        default=DEFAULT_STEP_SIZE,
+        help="Training step size parameter (alpha)",
+    )
+    parser.add_argument(
+        "--discount-factor",
+        "-df",
+        type=float,
+        default=DEFAULT_DISCOUNT_FACTOR,
+        help="Reward discount factor (gamma)",
+    )
+    parser.add_argument(
+        "--explore-probability",
+        "-ep",
+        type=float,
+        default=DEFAULT_EXPLORE_PROBABILITY,
+        help="Probability of taking a random action (epsilon)",
     )
 
 
