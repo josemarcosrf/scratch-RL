@@ -1,5 +1,7 @@
 import logging
 import random
+from typing import Any
+from typing import Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,7 +30,6 @@ class TabularQLearning:
          - actions range from 0 to n_actions
          - There's no step-size scheduling (remains constant)
         """
-        self.stats = {}
         self.n_states = env.observation_space.n
         self.n_actions = env.action_space.n
         self.env = env
@@ -68,7 +69,7 @@ class TabularQLearning:
         discount: float,
         epsilon: float,
         step_size: float,
-    ) -> None:
+    ) -> Dict[str, Any]:
         """Implements the Off-policy TD Control algorithm 'Tabular Q-learning'
 
         Args:
@@ -83,7 +84,7 @@ class TabularQLearning:
         self.gamma = discount
         self.epsilon = epsilon
 
-        self.stats = {
+        stats = {
             "ep_length": np.zeros(num_episodes),
             "ep_rewards": np.zeros(num_episodes),
             "visits": np.zeros((self.n_states, self.n_actions)),
@@ -108,15 +109,17 @@ class TabularQLearning:
                     break
 
                 # Collect some stats
-                self.stats["ep_length"][ep_i] = i
-                self.stats["ep_rewards"][ep_i] += reward
-                self.stats["visits"][state, action] += 1
+                stats["ep_length"][ep_i] = i
+                stats["ep_rewards"][ep_i] += reward
+                stats["visits"][state, action] += 1
 
                 state = next_state
 
         # Print the policy over the map
         self.env.close()
         self.print_policy()
+
+        return stats
 
     def print_policy(self):
         q = self.Q.reshape(self.h, self.w, self.n_actions)
@@ -143,7 +146,7 @@ if __name__ == "__main__":
 
     logger.info("Initializing agent")
     agent = TabularQLearning(env)
-    agent.train(
+    stats = agent.train(
         num_episodes=args.num_episodes,
         max_ep_steps=args.num_steps,
         step_size=args.step_size,
@@ -152,10 +155,10 @@ if __name__ == "__main__":
     )
 
     fig, axis = plt.subplots(1, 3, figsize=(15, 10))
-    plot_line(agent.stats["ep_rewards"], title="Episode rewards", ax=axis[0])
-    plot_line(agent.stats["ep_length"], title="Episode length", ax=axis[1])
+    plot_line(stats["ep_rewards"], title="Episode rewards", ax=axis[0])
+    plot_line(stats["ep_length"], title="Episode length", ax=axis[1])
 
-    state_visits = np.sum(agent.stats["visits"], axis=-1).reshape(agent.h, agent.w)
+    state_visits = np.sum(stats["visits"], axis=-1).reshape(agent.h, agent.w)
     logger.debug(state_visits)
     plot_heatmap(state_visits, title="state visits", ax=axis[2])
 
