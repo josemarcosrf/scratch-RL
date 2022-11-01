@@ -5,15 +5,13 @@ from typing import Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tabulate import tabulate
 from tqdm.auto import tqdm
 
+from algorithms.tabular import TabularAgent
 from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
-from helpers.environments import get_env_action_name_map
-from helpers.environments import get_env_map_shape
 from helpers.plotting import plot_heatmap
 from helpers.plotting import plot_line
 
@@ -21,7 +19,7 @@ from helpers.plotting import plot_line
 logger = logging.getLogger(__name__)
 
 
-class TabularQLearning:
+class TabularQLearning(TabularAgent):
     def __init__(self, env):
 
         """Initializes a Q-learning Tabular agent for the given environment.
@@ -30,14 +28,7 @@ class TabularQLearning:
          - actions range from 0 to n_actions
          - There's no step-size scheduling (remains constant)
         """
-        self.n_states = env.observation_space.n
-        self.n_actions = env.action_space.n
-        self.env = env
-        self.action_map = get_env_action_name_map(env)
-        self.h, self.w = get_env_map_shape(env)
-        # self.Q = np.zeros((self.n_states, self.n_actions))
-        self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        self.Q[-1, :] = 0
+        super().__init__(env)
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -117,21 +108,9 @@ class TabularQLearning:
 
         # Print the policy over the map
         self.env.close()
-        self.print_policy()
+        self.print_policy(stats)
 
         return stats
-
-    def print_policy(self):
-        q = self.Q.reshape(self.h, self.w, self.n_actions)
-        action_func = np.vectorize(lambda x: self.action_map[x])
-        table = [action_func(np.argmax(row, axis=-1)) for row in q]
-
-        for i in range(self.h):
-            for j in range(self.w):
-                if sum(self.stats["visits"][i * self.w + j]) == 0:
-                    table[i][j] = "x"
-
-        print(tabulate(table, tablefmt="simple_grid"))
 
 
 if __name__ == "__main__":

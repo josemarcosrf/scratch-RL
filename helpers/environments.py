@@ -1,9 +1,22 @@
 from typing import Any
 from typing import Dict
+from typing import Tuple
 
 import gymnasium as gym
 
 ENV_META: Dict[str, Dict[str, Any]] = {
+    "Taxi-v3": {
+        "map_shape": (5, -5),
+        "action_map": {
+            0: "south",
+            1: "north",
+            2: "east",
+            3: "west",
+            4: "pickup",
+            5: "drop off",
+        },
+        "params": {},
+    },
     "CliffWalking-v0": {
         "map_shape": (4, 12),
         "action_map": {
@@ -41,6 +54,17 @@ def get_env(env_name: str, render_mode: str = None):
 
 def get_env_name(env):
     return env.unwrapped.spec.id
+
+
+def get_env_state_dims(env) -> Tuple[int, ...]:
+    if isinstance(env.observation_space, gym.spaces.tuple.Tuple):
+        return tuple(d.n for d in env.observation_space)
+
+    return (env.observation_space.n,)
+
+
+def get_env_action_dims(env) -> Tuple[int]:
+    return (env.action_space.n,)
 
 
 def get_env_map_shape(env):

@@ -5,24 +5,21 @@ from typing import Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tabulate import tabulate
 from tqdm.auto import tqdm
 
+from algorithms.tabular import TabularAgent
 from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
-from helpers.environments import get_env_action_name_map
-from helpers.environments import get_env_map_shape
 from helpers.plotting import plot_heatmap
 from helpers.plotting import plot_line
-from helpers.plotting import plot_vector_field
 
 
 logger = logging.getLogger(__name__)
 
 
-class TabularSARSA:
+class TabularSARSA(TabularAgent):
     def __init__(self, env):
 
         """Initializes a SARSA Tabular agent for the given environment.
@@ -31,14 +28,7 @@ class TabularSARSA:
          - actions range from 0 to n_actions
          - There's no step-size scheduling (remains constant)
         """
-        self.n_states = env.observation_space.n
-        self.n_actions = env.action_space.n
-        self.env = env
-        self.action_map = get_env_action_name_map(env)
-        self.h, self.w = get_env_map_shape(env)
-        # self.Q = np.zeros((self.n_states, self.n_actions))
-        self.Q = np.random.uniform(0, 1, size=(self.n_states, self.n_actions))
-        self.Q[-1, :] = 0
+        super().__init__(env)
 
     def run_policy(self, state: int) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -122,46 +112,10 @@ class TabularSARSA:
 
         # Print the policy over the map
         self.env.close()
-        self.print_policy()
+        self.print_policy(stats)
         # self._plot_q()
 
         return stats
-
-    def print_policy(self):
-        q = self.Q.reshape(self.h, self.w, self.n_actions)
-        action_func = np.vectorize(lambda x: self.action_map[x])
-        table = [action_func(np.argmax(row, axis=-1)) for row in q]
-
-        for i in range(self.h):
-            for j in range(self.w):
-                if sum(self.stats["visits"][i * self.w + j]) == 0:
-                    table[i][j] = "x"
-
-        print(tabulate(table, tablefmt="simple_grid"))
-
-    def _plot_q(self, save_fpath: str = None):
-        """Transforms the Q table into a vector field representation of
-        the agents action preferences.
-        NOTE: numpy and pyplot have swapped axis!
-        NOTE: The plot is flipped on the Y axis (axis=0 for numpy)
-            pyplot     -->  indexes (0, 0) at the bottom-left
-            numpy/gym  -->  indexes (0, 0) at the top-left
-        Args:
-            h (int): Grid world height
-            w (int): Grid world width
-        """
-        q = self.Q.reshape(self.h, self.w, self.n_actions)
-
-        # Q-values are negative so we need to take the opposite dir as vectors
-        # NOTE: This directions are only correct for the Cliff env!
-        # RIGHT - LEFT
-        u = q[:, :, 1] - q[:, :, 3]
-        u /= np.maximum(1, np.maximum(q[:, :, 1], q[:, :, 3]))
-        # UP - DOWN
-        v = q[:, :, 0] - q[:, :, 2]
-        v /= np.maximum(1, np.maximum(q[:, :, 0], q[:, :, 2]))
-
-        plot_vector_field(u, v, save_fpath=save_fpath)
 
 
 if __name__ == "__main__":
