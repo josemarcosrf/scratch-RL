@@ -10,13 +10,12 @@ from tqdm.auto import tqdm
 
 from algorithms import fix_state
 from algorithms import State
-from algorithms import state_as_int
+from algorithms import state_as_ints
 from algorithms.tabular import TabularAgent
 from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
-from helpers.plotting import plot_stats
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,7 @@ class TabularSARSA(TabularAgent):
         super().__init__(env)
         logger.debug(f"Q has shape: {self.Q.shape}")
 
-    @state_as_int
+    @state_as_ints
     def run_policy(self, state: State) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
 
@@ -46,7 +45,7 @@ class TabularSARSA(TabularAgent):
 
         return np.argmax(self.Q[state][:])
 
-    @state_as_int
+    @state_as_ints
     def observe(self, s: State, a: int, r: float, next_s: State, next_a: int) -> int:
         """Here is where the Q-update happens
 
@@ -143,5 +142,5 @@ if __name__ == "__main__":
         epsilon=args.explore_probability,
     )
 
-    logger.debug(f" Visits=> {stats['visits'].shape}")
-    plot_stats(stats, agent.env_shape)
+    logger.debug(f" Visits => {stats['visits'].shape}")
+    agent.plot_stats(stats)

@@ -82,15 +82,3 @@ def plot_vector_field(
     else:
         # plt.show()
         return ax
-
-
-def plot_stats(stats, env_shape):
-    fig, axis = plt.subplots(1, 3, figsize=(20, 10))
-    plot_line(stats["ep_rewards"], title="Episode rewards", ax=axis[0])
-    plot_line(stats["ep_length"], title="Episode length", ax=axis[1])
-
-    if len(env_shape) == 2:
-        state_visits = np.sum(stats["visits"], axis=-1).reshape(env_shape)
-        plot_heatmap(state_visits, title="state visits", ax=axis[2])
-
-    plt.show()

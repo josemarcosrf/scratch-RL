@@ -3,6 +3,7 @@ import warnings
 from typing import Any
 from typing import Dict
 
+import matplotlib.pyplot as plt
 import numpy as np
 from tabulate import tabulate
 
@@ -10,6 +11,8 @@ from helpers.environments import get_env_action_dims
 from helpers.environments import get_env_action_name_map
 from helpers.environments import get_env_shape
 from helpers.environments import get_env_state_dims
+from helpers.plotting import plot_heatmap
+from helpers.plotting import plot_line
 from helpers.plotting import plot_vector_field
 
 
@@ -65,3 +68,14 @@ class TabularAgent(metaclass=abc.ABCMeta):
                     table[i][j] = "x"
 
         print(tabulate(table, tablefmt="simple_grid"))
+
+    def plot_stats(self, stats):
+        fig, axis = plt.subplots(1, 3, figsize=(20, 10))
+        plot_line(stats["ep_rewards"], title="Episode rewards", ax=axis[0])
+        plot_line(stats["ep_length"], title="Episode length", ax=axis[1])
+
+        if len(self.env_shape) == 2:
+            state_visits = np.sum(stats["visits"], axis=-1).reshape(self.env_shape)
+            plot_heatmap(state_visits, title="state visits", ax=axis[2])
+
+        plt.show()

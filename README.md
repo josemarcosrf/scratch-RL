@@ -90,5 +90,5 @@ python -m algorithms.tabular.sarsa -e CliffWalking-v0
 
 ```bash
 # Q-learning on Frozen lake
-python -m algorithms.tabular.q_learning -e FrozenLake-v1
+python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
 ```

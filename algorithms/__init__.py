@@ -15,10 +15,10 @@ def fix_state(state) -> State:
     return int(state)
 
 
-def state_as_int(func: Callable) -> Callable:
-    """This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted
-    when the function is used."""
+def state_as_ints(func: Callable) -> Callable:
+    """This is decorator will convert all elements of all tuple arguments
+    of a function to all integers.
+    """
 
     @wraps(func)
     def mapper(*args, **kwargs):

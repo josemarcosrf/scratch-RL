@@ -8,13 +8,12 @@ from tqdm.auto import tqdm
 
 from algorithms import fix_state
 from algorithms import State
-from algorithms import state_as_int
+from algorithms import state_as_ints
 from algorithms.tabular import TabularAgent
 from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
-from helpers.plotting import plot_stats
 
 
 logger = logging.getLogger(__name__)
@@ -32,21 +31,19 @@ class TabularQLearning(TabularAgent):
         super().__init__(env)
         logger.debug(f"Q has shape: {self.Q.shape}")
 
-    @state_as_int
+    @state_as_ints
     def run_policy(self, state: State) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
 
         Args:
             state (int): agent state
         """
-        state = fix_state(state)
-
         if random.random() < self.epsilon:
             return np.random.choice(range(self.n_actions))
 
         return np.argmax(self.Q[state][:])
 
-    @state_as_int
+    @state_as_ints
     def observe(self, s: State, a: int, r: float, next_s: State) -> None:
         """Here is where the Q-update happens
         Args:
@@ -55,8 +52,6 @@ class TabularQLearning(TabularAgent):
             r (float): reward
             next_s (int): next state (usually denoted as: s')
         """
-        s = fix_state(s)
-        next_s = fix_state(next_s)
         self.Q[s][a] += self.alpha * (
             r + self.gamma * np.max(self.Q[next_s][:], axis=-1) - self.Q[s][a]
         )
@@ -142,4 +137,4 @@ if __name__ == "__main__":
     )
 
     logger.debug(f" Visits=> {stats['visits'].shape}")
-    plot_stats(stats, agent.env_shape)
+    agent.plot_stats(stats)
