@@ -35,28 +35,28 @@ def make_env_options(parser: argparse.ArgumentParser):
     )
 
 
-def make_train_options(parser: argparse.ArgumentParser):
-    parser.add_argument_group("Training options")
+def make_learn_options(parser: argparse.ArgumentParser):
+    parser.add_argument_group("Learning options")
     parser.add_argument(
         "--num-episodes",
         "-ne",
         type=int,
         default=DEFAULT_NUM_EPISODES,
-        help="The max number of training episodes",
+        help="The max number of learning episodes",
     )
     parser.add_argument(
         "--num-steps",
         "-ns",
         type=int,
         default=DEFAULT_MAX_EP_STEPS,
-        help="The max number of training steps per episode",
+        help="The max number of learning steps per episode",
     )
     parser.add_argument(
         "--step-size",
         "-st",
         type=float,
         default=DEFAULT_STEP_SIZE,
-        help="Training step size parameter (alpha)",
+        help="learning step size parameter (alpha)",
     )
     parser.add_argument(
         "--discount-factor",
@@ -77,7 +77,7 @@ def make_train_options(parser: argparse.ArgumentParser):
 def get_cli_parser(desc: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(desc)
     make_env_options(parser)
-    make_train_options(parser)
+    make_learn_options(parser)
     make_logging_options(parser)
 
     return parser

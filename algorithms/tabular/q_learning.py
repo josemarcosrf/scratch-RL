@@ -3,17 +3,18 @@ import random
 from typing import Any
 from typing import Dict
 
-import matplotlib.pyplot as plt
 import numpy as np
 from tqdm.auto import tqdm
 
+from algorithms import fix_state
+from algorithms import State
+from algorithms import state_as_int
 from algorithms.tabular import TabularAgent
 from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
-from helpers.plotting import plot_heatmap
-from helpers.plotting import plot_line
+from helpers.plotting import plot_stats
 
 
 logger = logging.getLogger(__name__)
@@ -29,19 +30,24 @@ class TabularQLearning(TabularAgent):
          - There's no step-size scheduling (remains constant)
         """
         super().__init__(env)
+        logger.debug(f"Q has shape: {self.Q.shape}")
 
-    def run_policy(self, state: int) -> int:
+    @state_as_int
+    def run_policy(self, state: State) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
 
         Args:
             state (int): agent state
         """
+        state = fix_state(state)
+
         if random.random() < self.epsilon:
             return np.random.choice(range(self.n_actions))
 
-        return np.argmax(self.Q[state, :])
+        return np.argmax(self.Q[state][:])
 
-    def observe(self, s: int, a: int, r: float, next_s: int) -> None:
+    @state_as_int
+    def observe(self, s: State, a: int, r: float, next_s: State) -> None:
         """Here is where the Q-update happens
         Args:
             s (int): current state
@@ -49,11 +55,13 @@ class TabularQLearning(TabularAgent):
             r (float): reward
             next_s (int): next state (usually denoted as: s')
         """
-        self.Q[s, a] += self.alpha * (
-            r + self.gamma * np.max(self.Q[next_s, :], axis=-1) - self.Q[s, a]
+        s = fix_state(s)
+        next_s = fix_state(next_s)
+        self.Q[s][a] += self.alpha * (
+            r + self.gamma * np.max(self.Q[next_s][:], axis=-1) - self.Q[s][a]
         )
 
-    def train(
+    def learn(
         self,
         num_episodes: int,
         max_ep_steps: int,
@@ -70,7 +78,7 @@ class TabularQLearning(TabularAgent):
             epsilon (float): probability of taking a random action (epsilon-greedy)
             step_size (float): learning step size (alpha)
         """
-        logger.info("Start training")
+        logger.info("Start learning")
         self.alpha = step_size
         self.gamma = discount
         self.epsilon = epsilon
@@ -78,7 +86,7 @@ class TabularQLearning(TabularAgent):
         stats = {
             "ep_length": np.zeros(num_episodes),
             "ep_rewards": np.zeros(num_episodes),
-            "visits": np.zeros((self.n_states, self.n_actions)),
+            "visits": np.zeros(self.Q.shape),
         }
 
         episode_iter = tqdm(range(num_episodes))
@@ -102,7 +110,7 @@ class TabularQLearning(TabularAgent):
                 # Collect some stats
                 stats["ep_length"][ep_i] = i
                 stats["ep_rewards"][ep_i] += reward
-                stats["visits"][state, action] += 1
+                stats["visits"][fix_state(state)][action] += 1
 
                 state = next_state
 
@@ -125,7 +133,7 @@ if __name__ == "__main__":
 
     logger.info("Initializing agent")
     agent = TabularQLearning(env)
-    stats = agent.train(
+    stats = agent.learn(
         num_episodes=args.num_episodes,
         max_ep_steps=args.num_steps,
         step_size=args.step_size,
@@ -133,12 +141,5 @@ if __name__ == "__main__":
         epsilon=args.explore_probability,
     )
 
-    fig, axis = plt.subplots(1, 3, figsize=(15, 10))
-    plot_line(stats["ep_rewards"], title="Episode rewards", ax=axis[0])
-    plot_line(stats["ep_length"], title="Episode length", ax=axis[1])
-
-    state_visits = np.sum(stats["visits"], axis=-1).reshape(agent.h, agent.w)
-    logger.debug(state_visits)
-    plot_heatmap(state_visits, title="state visits", ax=axis[2])
-
-    plt.show()
+    logger.debug(f" Visits=> {stats['visits'].shape}")
+    plot_stats(stats, agent.env_shape)

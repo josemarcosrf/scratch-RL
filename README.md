@@ -6,15 +6,18 @@ The main goal is to do a deep dive by implementing, to go beyond the theoretical
 understanding.
 
 Therefore it is structured with simplicity in mind, with each algorithm being
-self contained and in a single file.
+self contained and in a single file aand with as little abstraction as possible.
 
 <!--ts-->
    * [RL from scratch](#rl-from-scratch)
       * [How To](#how-to)
          * [Install](#install)
-         * [Run](#run)
+      * [Run](#run)
+         * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
+         * [Tabular SARSA](#tabular-sarsa)
+         * [Tabular Q-learning](#tabular-q-learning)
 
-<!-- Added by: jose, at: jue 27 oct 2022 18:32:28 CEST -->
+<!-- Added by: jose, at: mar 01 nov 2022 19:07:41 CET -->
 
 <!--te-->
 
@@ -44,8 +47,7 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-
-### Run
+## Run
 
 > If at run time, when running and environtment with `render_mode="human"` you see:
 > `libGL error: MESA-LOADER`, you might need to run like:
@@ -55,12 +57,38 @@ pip install -r requirements-dev.txt
 > For more info check [this blogpost](https://devcodetutorial.com/faq/libgl-error-failed-to-load-drivers-iris-and-swrast-in-ubuntu-20-04)
 
 
-Examples:
+
+### Tabular first-visit Monte Carlo
+
+**Valid environments**:
+
+ - `Blackjack-v1`
+
+
+### Tabular SARSA
+
+**Valid environments:**
+
+ - `CliffWalking-v0`
+ - `FrozenLake-v1`
+
+**Examples:**
 
 ```bash
- # SARSA on CLiff World
+ # SARSA on Cliff World
 python -m algorithms.tabular.sarsa -e CliffWalking-v0
+```
+### Tabular Q-learning
 
+**Valid environments:**
+
+ - `CliffWalking-v0`
+ - `FrozenLake-v1`
+
+
+**Examples:**
+
+```bash
 # Q-learning on Frozen lake
 python -m algorithms.tabular.q_learning -e FrozenLake-v1
 ```

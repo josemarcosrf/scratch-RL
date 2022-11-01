@@ -2,18 +2,21 @@ import logging
 import random
 from typing import Any
 from typing import Dict
+from typing import Tuple
+from typing import Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 from tqdm.auto import tqdm
 
+from algorithms import fix_state
+from algorithms import State
+from algorithms import state_as_int
 from algorithms.tabular import TabularAgent
 from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
 from helpers.environments import get_env
-from helpers.plotting import plot_heatmap
-from helpers.plotting import plot_line
+from helpers.plotting import plot_stats
 
 
 logger = logging.getLogger(__name__)
@@ -29,8 +32,10 @@ class TabularSARSA(TabularAgent):
          - There's no step-size scheduling (remains constant)
         """
         super().__init__(env)
+        logger.debug(f"Q has shape: {self.Q.shape}")
 
-    def run_policy(self, state: int) -> int:
+    @state_as_int
+    def run_policy(self, state: State) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
 
         Args:
@@ -39,9 +44,10 @@ class TabularSARSA(TabularAgent):
         if random.random() < self.epsilon:
             return np.random.choice(range(self.n_actions))
 
-        return np.argmax(self.Q[state, :])
+        return np.argmax(self.Q[state][:])
 
-    def observe(self, s: int, a: int, r: float, next_s: int, next_a: int) -> int:
+    @state_as_int
+    def observe(self, s: State, a: int, r: float, next_s: State, next_a: int) -> int:
         """Here is where the Q-update happens
 
         Args:
@@ -51,12 +57,12 @@ class TabularSARSA(TabularAgent):
             next_s (int): next state (usually denoted as: s')
             next_a (int): next action (usually denoted as: a')
         """
-        self.Q[s, a] += self.alpha * (
-            r + self.gamma * self.Q[next_s, next_a] - self.Q[s, a]
+        self.Q[s][a] += self.alpha * (
+            r + self.gamma * self.Q[next_s][next_a] - self.Q[s][a]
         )
         return next_a
 
-    def train(
+    def learn(
         self,
         num_episodes: int,
         max_ep_steps: int,
@@ -73,7 +79,7 @@ class TabularSARSA(TabularAgent):
             epsilon (float): probability of taking a random action (epsilon-greedy)
             step_size (float): learning step size (alpha)
         """
-        logger.info("Start training")
+        logger.info("Start learning")
         self.alpha = step_size
         self.gamma = discount
         self.epsilon = epsilon
@@ -81,7 +87,7 @@ class TabularSARSA(TabularAgent):
         stats = {
             "ep_length": np.zeros(num_episodes),
             "ep_rewards": np.zeros(num_episodes),
-            "visits": np.zeros((self.n_states, self.n_actions)),
+            "visits": np.zeros(self.Q.shape),
         }
 
         episode_iter = tqdm(range(num_episodes))
@@ -106,14 +112,13 @@ class TabularSARSA(TabularAgent):
                 # Collect some stats
                 stats["ep_length"][ep_i] = i
                 stats["ep_rewards"][ep_i] += reward
-                stats["visits"][state, action] += 1
+                stats["visits"][fix_state(state)][action] += 1
 
                 state = next_state
 
         # Print the policy over the map
         self.env.close()
         self.print_policy(stats)
-        # self._plot_q()
 
         return stats
 
@@ -130,7 +135,7 @@ if __name__ == "__main__":
 
     logger.info("Initializing agent")
     agent = TabularSARSA(env)
-    stats = agent.train(
+    stats = agent.learn(
         num_episodes=args.num_episodes,
         max_ep_steps=args.num_steps,
         step_size=args.step_size,
@@ -138,12 +143,5 @@ if __name__ == "__main__":
         epsilon=args.explore_probability,
     )
 
-    fig, axis = plt.subplots(1, 3, figsize=(20, 10))
-    plot_line(stats["ep_rewards"], title="Episode rewards", ax=axis[0])
-    plot_line(stats["ep_length"], title="Episode length", ax=axis[1])
-
-    state_visits = np.sum(stats["visits"], axis=-1).reshape(agent.h, agent.w)
-    logger.debug(state_visits)
-    plot_heatmap(state_visits, title="state visits", ax=axis[2])
-
-    plt.show()
+    logger.debug(f" Visits=> {stats['visits'].shape}")
+    plot_stats(stats, agent.env_shape)

@@ -2,7 +2,7 @@ DEFAULT_LOG_DIR = "logs"
 
 DEFAULT_RANDOM_SEED = 42
 
-# training parameters
+# learning parameters
 DEFAULT_NUM_EPISODES = 500
 DEFAULT_MAX_EP_STEPS = 500
 DEFAULT_STEP_SIZE = 0.5

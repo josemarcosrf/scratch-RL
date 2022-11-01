@@ -1,10 +1,18 @@
 from typing import Any
 from typing import Dict
 from typing import Tuple
+from typing import Union
 
 import gymnasium as gym
 
 ENV_META: Dict[str, Dict[str, Any]] = {
+    "Blackjack-v1": {
+        "action_map": {
+            0: "stick",
+            1: "hit",
+        },
+        "params": {"natural": False, "sab": True},
+    },
     "Taxi-v3": {
         "map_shape": (5, -5),
         "action_map": {
@@ -56,20 +64,25 @@ def get_env_name(env):
     return env.unwrapped.spec.id
 
 
-def get_env_state_dims(env) -> Tuple[int, ...]:
+def get_env_state_dims(env) -> Union[int, Tuple[int, ...]]:
     if isinstance(env.observation_space, gym.spaces.tuple.Tuple):
         return tuple(d.n for d in env.observation_space)
 
-    return (env.observation_space.n,)
+    return env.observation_space.n
 
 
-def get_env_action_dims(env) -> Tuple[int]:
-    return (env.action_space.n,)
+def get_env_action_dims(env) -> int:
+    return env.action_space.n
 
 
-def get_env_map_shape(env):
+def get_env_shape(env):
     env_name = get_env_name(env)
-    return ENV_META[env_name]["map_shape"]
+
+    state_dims = get_env_state_dims(env)
+    if isinstance(state_dims, tuple):
+        return state_dims
+
+    return ENV_META[env_name].get("map_shape", (-1, -1))
 
 
 def get_env_action_name_map(env) -> Dict[int, str]:
