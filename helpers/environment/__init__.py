@@ -5,6 +5,8 @@ from typing import Union
 
 import gymnasium as gym
 
+from helpers.constants import DEFAULT_RANDOM_SEED
+
 ENV_META: Dict[str, Dict[str, Any]] = {
     "Blackjack-v1": {
         "action_map": {
@@ -53,11 +55,14 @@ ENV_META: Dict[str, Dict[str, Any]] = {
 
 
 def get_env(env_name: str, render_mode: str = None):
-    return gym.make(
+    env = gym.make(
         env_name,
         **ENV_META[env_name].get("params", {}),
         render_mode=render_mode,
     )
+    env.action_space.seed(DEFAULT_RANDOM_SEED)
+
+    return env
 
 
 def get_env_name(env):
@@ -88,3 +93,18 @@ def get_env_shape(env):
 def get_env_action_name_map(env) -> Dict[int, str]:
     env_name = get_env_name(env)
     return ENV_META[env_name]["action_map"]
+
+
+def get_env_report_functions(env):
+    env_name = get_env_name(env).split("-v")[0]
+
+    # Make this a registry dict in constants?
+    if env_name in ["CliffWalking", "FrozenLake"]:
+        from helpers.environment.gridworlds import print_policy, plot_stats
+
+        return print_policy, plot_stats
+
+    elif env_name in ["Blackjack"]:
+        from helpers.environment.blackjack import print_policy, plot_stats
+
+        return print_policy, plot_stats

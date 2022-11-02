@@ -6,7 +6,7 @@ from helpers.constants import DEFAULT_EXPLORE_PROBABILITY
 from helpers.constants import DEFAULT_MAX_EP_STEPS
 from helpers.constants import DEFAULT_NUM_EPISODES
 from helpers.constants import DEFAULT_STEP_SIZE
-from helpers.environments import ENV_META
+from helpers.environment import ENV_META
 
 
 def make_logging_options(parser: argparse.ArgumentParser):

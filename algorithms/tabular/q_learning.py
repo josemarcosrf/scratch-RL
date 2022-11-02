@@ -10,10 +10,13 @@ from algorithms import fix_state
 from algorithms import State
 from algorithms import state_as_ints
 from algorithms.tabular import TabularAgent
-from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
-from helpers.environments import get_env
+from helpers.environment import get_env
+from helpers.environment import get_env_report_functions
+from helpers.io import init_logger
+
+# mypy: ignore-errors
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 class TabularQLearning(TabularAgent):
     def __init__(self, env):
-
         """Initializes a Q-learning Tabular agent for the given environment.
 
         For simplicity we are assuming the following:
@@ -33,11 +35,7 @@ class TabularQLearning(TabularAgent):
 
     @state_as_ints
     def run_policy(self, state: State) -> int:
-        """Run the current policy. In this case e-greedy with constant epsilon
-
-        Args:
-            state (int): agent state
-        """
+        """Run the current policy. In this case e-greedy with constant epsilon"""
         if random.random() < self.epsilon:
             return np.random.choice(range(self.n_actions))
 
@@ -45,13 +43,7 @@ class TabularQLearning(TabularAgent):
 
     @state_as_ints
     def observe(self, s: State, a: int, r: float, next_s: State) -> None:
-        """Here is where the Q-update happens
-        Args:
-            s (int): current state
-            a (int): current action
-            r (float): reward
-            next_s (int): next state (usually denoted as: s')
-        """
+        """Here is where the Q-update happens"""
         self.Q[s][a] += self.alpha * (
             r + self.gamma * np.max(self.Q[next_s][:], axis=-1) - self.Q[s][a]
         )
@@ -63,7 +55,7 @@ class TabularQLearning(TabularAgent):
         discount: float,
         epsilon: float,
         step_size: float,
-    ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:  # type: ignore
         """Implements the Off-policy TD Control algorithm 'Tabular Q-learning'
 
         Args:
@@ -111,7 +103,6 @@ class TabularQLearning(TabularAgent):
 
         # Print the policy over the map
         self.env.close()
-        self.print_policy(stats)
 
         return stats
 
@@ -124,7 +115,6 @@ if __name__ == "__main__":
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
-    env.action_space.seed(DEFAULT_RANDOM_SEED)
 
     logger.info("Initializing agent")
     agent = TabularQLearning(env)
@@ -136,5 +126,6 @@ if __name__ == "__main__":
         epsilon=args.explore_probability,
     )
 
-    logger.debug(f" Visits=> {stats['visits'].shape}")
-    agent.plot_stats(stats)
+    print_policy, plot_stats = get_env_report_functions(env)
+    print_policy(agent, stats)
+    plot_stats(agent, stats)

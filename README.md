@@ -16,8 +16,9 @@ self contained and in a single file aand with as little abstraction as possible.
          * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
          * [Tabular SARSA](#tabular-sarsa)
          * [Tabular Q-learning](#tabular-q-learning)
+         * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo-1)
 
-<!-- Added by: jose, at: mar 01 nov 2022 19:07:41 CET -->
+<!-- Added by: jose, at: mié 02 nov 2022 21:44:44 CET -->
 
 <!--te-->
 
@@ -77,7 +78,35 @@ pip install -r requirements-dev.txt
 ```bash
  # SARSA on Cliff World
 python -m algorithms.tabular.sarsa -e CliffWalking-v0
+
+# Output (policy):
+┌───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬──────┐
+│ right │ right │ right │ right │ right │ right │ right │ right │ right │ right │ right │ down │
+├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
+│ up    │ up    │ right │ right │ up    │ up    │ right │ right │ up    │ right │ up    │ down │
+├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
+│ up    │ up    │ right │ right │ up    │ up    │ left  │ left  │ left  │ right │ right │ down │
+├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
+│ up    │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x    │
+└───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
 ```
+
+```bash
+# SARSA on FrozenLake
+python -m algorithms.tabular.sarsa -e FrozenLake-v1 -ep 0.5 -ne 5000
+
+# Output (policy)
+┌───────┬───────┬───────┬────┐
+│ right │ right │ down  │ up │
+├───────┼───────┼───────┼────┤
+│ right │ x     │ down  │ x  │
+├───────┼───────┼───────┼────┤
+│ right │ right │ down  │ x  │
+├───────┼───────┼───────┼────┤
+│ x     │ right │ right │ x  │
+└───────┴───────┴───────┴────┘
+```
+
 ### Tabular Q-learning
 
 **Valid environments:**
@@ -91,4 +120,29 @@ python -m algorithms.tabular.sarsa -e CliffWalking-v0
 ```bash
 # Q-learning on Frozen lake
 python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
+
+# Output (policy):
+┌───────┬───────┬───────┬──────┐
+│ down  │ right │ down  │ left │
+├───────┼───────┼───────┼──────┤
+│ down  │ x     │ down  │ x    │
+├───────┼───────┼───────┼──────┤
+│ right │ down  │ down  │ x    │
+├───────┼───────┼───────┼──────┤
+│ x     │ right │ right │ x    │
+└───────┴───────┴───────┴──────┘
+```
+
+### Tabular first-visit Monte Carlo
+
+**Valid environments:**
+
+ - `Blackjack-v1`
+
+
+**Examples:**
+
+```bash
+# first-visit MC on Blackjack
+python -m algorithms.tabular.first_visit_MC -e Blacckjack-v1 -ep 0.1 -ne 500000
 ```

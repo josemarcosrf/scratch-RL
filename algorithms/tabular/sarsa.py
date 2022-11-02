@@ -12,10 +12,13 @@ from algorithms import fix_state
 from algorithms import State
 from algorithms import state_as_ints
 from algorithms.tabular import TabularAgent
-from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
-from helpers.environments import get_env
+from helpers.environment import get_env
+from helpers.environment import get_env_report_functions
+from helpers.io import init_logger
+
+# mypy: ignore-errors
 
 
 logger = logging.getLogger(__name__)
@@ -117,7 +120,6 @@ class TabularSARSA(TabularAgent):
 
         # Print the policy over the map
         self.env.close()
-        self.print_policy(stats)
 
         return stats
 
@@ -130,7 +132,6 @@ if __name__ == "__main__":
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
-    env.action_space.seed(DEFAULT_RANDOM_SEED)
 
     logger.info("Initializing agent")
     agent = TabularSARSA(env)
@@ -142,5 +143,6 @@ if __name__ == "__main__":
         epsilon=args.explore_probability,
     )
 
-    logger.debug(f" Visits => {stats['visits'].shape}")
-    agent.plot_stats(stats)
+    print_policy, plot_stats = get_env_report_functions(env)
+    print_policy(agent, stats)
+    plot_stats(agent, stats)

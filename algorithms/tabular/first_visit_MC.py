@@ -6,15 +6,19 @@ from typing import List
 from typing import Tuple
 
 import numpy as np
+from tabulate import tabulate
 from tqdm.auto import tqdm
 
 from algorithms import State
 from algorithms import state_as_ints
 from algorithms.tabular import TabularAgent
-from helpers import init_logger
 from helpers.cli import get_cli_parser
 from helpers.constants import DEFAULT_RANDOM_SEED
-from helpers.environments import get_env
+from helpers.environment import get_env
+from helpers.environment import get_env_report_functions
+from helpers.io import init_logger
+
+# mypy: ignore-errors
 
 
 logger = logging.getLogger(__name__)
@@ -23,12 +27,13 @@ logger = logging.getLogger(__name__)
 class TabularMonteCarlo(TabularAgent):
     def __init__(self, env):
         """Initializes a tabular first-visit Monte Carlo agent for the given environment.
-
         For simplicity we are assuming the following:
          - actions range from 0 to n_actions
         """
         super().__init__(env)
-        self.G = np.zeros(self.Q.shape)  # the rewards accumulator
+        self.Q = np.zeros(self.Q.shape)
+        self.G = np.zeros(self.Q.shape)  # rewards accumulator
+        self.visits = np.zeros(self.Q.shape)  # visit counter (to compute averages)
         logger.debug(f"Q has shape: {self.Q.shape}")
 
     @state_as_ints
@@ -51,11 +56,10 @@ class TabularMonteCarlo(TabularAgent):
         for _ in range(max_ep_steps):
             # Take action A, observe S' and R
             next_state, reward, terminated, truncated, _ = self.env.step(action)
+            episode.append((state, action, reward))
 
             if terminated or truncated:
                 break
-
-            episode.append((state, action, reward))
 
             next_action = self.run_policy(next_state)
             action = next_action
@@ -63,38 +67,36 @@ class TabularMonteCarlo(TabularAgent):
 
         return episode
 
-    def observe(self, episodes: List[Tuple[Any, ...]]):
+    def observe(self, episode: List[Tuple[Any, ...]]):
         @state_as_ints
         def add_to_returns(state, action, reward):
-            returns[state][action] += reward
-            visits[state][action] += 1
+            self.G[state][action] += reward
+            self.visits[state][action] += 1
 
-        returns = np.zeros(self.Q.shape)
-        visits = np.zeros(self.Q.shape)
+        # To guarantee we only count first-visits
+        seen_states: Dict[Tuple[Any, ...], bool] = {}
+        for (s, a, r) in episode:
+            if not seen_states.get((s, a), False):
+                add_to_returns(s, a, r)
+                seen_states[(s, a)] = True
 
-        for (s, a, r) in episodes:
-            add_to_returns(s, a, r)
-
-        self.Q = returns / visits  # TODO: divide only visited (state, action) pairs
+        self.Q = np.where(self.visits > 0, self.G / self.visits, self.Q)
 
     def learn(
         self,
         num_episodes: int,
         max_ep_steps: int,
-        discount: float,
         epsilon: float,
-        step_size: float,
     ) -> Dict[str, Any]:
 
         logger.info("Start learning")
-        self.alpha = step_size
-        self.gamma = discount
         self.epsilon = epsilon
 
         stats = {
             "ep_length": np.zeros(num_episodes),
             "ep_rewards": np.zeros(num_episodes),
-            "visits": None,
+            "visits": np.zeros(self.Q.shape),
+            "returns": np.zeros(self.Q.shape),
         }
 
         episode_iter = tqdm(range(num_episodes))
@@ -108,6 +110,8 @@ class TabularMonteCarlo(TabularAgent):
             self.observe(episode)
 
             # Collect some stats
+            stats["visits"] = self.visits.copy()
+            stats["returns"] = self.G.copy()
             stats["ep_length"][ep_i] = len(episode)
             stats["ep_rewards"][ep_i] = sum(r for (_, _, r) in episode)
 
@@ -124,16 +128,15 @@ if __name__ == "__main__":
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
-    env.action_space.seed(DEFAULT_RANDOM_SEED)
 
     logger.info("Initializing agent")
     agent = TabularMonteCarlo(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
         max_ep_steps=args.num_steps,
-        step_size=args.step_size,
-        discount=args.discount_factor,
         epsilon=args.explore_probability,
     )
 
-    agent.plot_stats(stats)
+    print_policy, plot_stats = get_env_report_functions(env)
+    print_policy(agent, stats)
+    plot_stats(agent, stats)
