@@ -13,12 +13,11 @@ self contained and in a single file aand with as little abstraction as possible.
       * [How To](#how-to)
          * [Install](#install)
       * [Run](#run)
-         * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
          * [Tabular SARSA](#tabular-sarsa)
          * [Tabular Q-learning](#tabular-q-learning)
-         * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo-1)
+         * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
 
-<!-- Added by: jose, at: mié 02 nov 2022 21:44:44 CET -->
+<!-- Added by: jose, at: mié 02 nov 2022 22:02:32 CET -->
 
 <!--te-->
 
@@ -57,13 +56,6 @@ pip install -r requirements-dev.txt
 > ```
 > For more info check [this blogpost](https://devcodetutorial.com/faq/libgl-error-failed-to-load-drivers-iris-and-swrast-in-ubuntu-20-04)
 
-
-
-### Tabular first-visit Monte Carlo
-
-**Valid environments**:
-
- - `Blackjack-v1`
 
 
 ### Tabular SARSA
