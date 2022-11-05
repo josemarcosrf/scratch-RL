@@ -4,6 +4,8 @@ repos:
     hooks:
     - id: check-merge-conflict
     - id: check-added-large-files
+      args:
+        - --maxkb=1024
     - id: detect-private-key
     - id: requirements-txt-fixer
       args:
