@@ -140,5 +140,5 @@ python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
 
 ```bash
 # first-visit MC on Blackjack
-python -m algorithms.tabular.first_visit_MC -e Blacckjack-v1 -ep 0.1 -ne 500000
+python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -ne 500000
 ```
