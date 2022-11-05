@@ -83,6 +83,10 @@ python -m algorithms.tabular.sarsa -e CliffWalking-v0
 └───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
 ```
 
+Also plots each epidoe `rewards`, `length` and the number of each `state's visits`:
+
+![./assets/sarsa_cliffwalks.png](assets/sarsa_cliffwalk.png "SARSA on CliffWalk stats")
+
 ```bash
 # SARSA on FrozenLake
 python -m algorithms.tabular.sarsa -e FrozenLake-v1 -ep 0.5 -ne 5000
