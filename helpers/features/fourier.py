@@ -2,13 +2,14 @@ import numpy as np
 
 
 class FourierBasis:
-    def __init__(self, order: int, c: np.array) -> None:
+    def __init__(self, interval_len:int, order: int, c: np.array) -> None:
         """Fourier Basis lienar transform.
 
         Args:
             order (int): The number of Fourier basis
             c (np.array): vector of shape (N+1, D) to deterine the functions frequencies along each axis
         """
+        self.T = interval_len
         self.N = order
         self.c = c
         # Defines a function for each feature
@@ -18,6 +19,7 @@ class FourierBasis:
         ]
 
     def encode(self, state: np.array) -> np.array:
+        state /= self.T  # so we are in the interval [0..1]
         return np.array([b_i(state) for b_i in self.basis])
 
 
@@ -39,7 +41,7 @@ if __name__ == "__main__":
             [5, 2],
         ]
     )
-    fb = FourierBasis(N, c)
+    fb = FourierBasis(1, N, c)
 
     x, y = np.meshgrid(np.arange(0, 1, 0.1), np.arange(0, 1, 0.1))
 
