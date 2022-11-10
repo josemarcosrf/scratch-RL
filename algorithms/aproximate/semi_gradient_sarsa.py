@@ -8,12 +8,10 @@ from tqdm.auto import tqdm
 
 from algorithms import fix_state
 from algorithms import State
-from algorithms import state_as_ints
-from algorithms.tabular import TabularAgent
 from helpers.cli import get_cli_parser
 from helpers.environment import get_env
 from helpers.environment import get_env_report_functions
-from helpers.features.fourier import FourierBasis
+
 from helpers.io import init_logger
 
 # mypy: ignore-errors
@@ -22,28 +20,7 @@ from helpers.io import init_logger
 logger = logging.getLogger(__name__)
 
 
-class FourierLinearValueFunction:
-    # TODO: How to compute Q(s,a;W) instead of only Q(s;W)
-    def __init__(self, interval_len: int, n_params: int = 5):
-        self.weights = np.zeros(n_params + 1)
-        c = np.array(
-            [
-                [0, 1],
-                [1, 0],
-                [1, 1],
-                [0, 5],
-                [2, 5],
-                [5, 2],
-            ]
-        )
-        self.features = FourierBasis(interval_len, n_params, c)
 
-    def __call__(self, s:State, a:int ) -> Any:
-        return np.dot(self.weights, self.features.encode(s))
-
-    def update(self, s:State, delta: float):
-        derivate_val = self.__call__(s)
-        self.weights += delta * derivate_val
 
 
 class SemiGradientSARSA():
@@ -58,6 +35,8 @@ class SemiGradientSARSA():
         super().__init__(env)
 
         # Init a Q-value approximate function
+        # TODO: How to compute Q(s,a;W) instead of only Q(s;W) with Fourier Basis?
+        # Do this with Neural Networks instead of Fourier Basis?
         pass
 
     def run_policy(self, state: State) -> int:
@@ -166,7 +145,7 @@ if __name__ == "__main__":
     env = get_env(args.env_name, render_mode=args.render_mode)
 
     logger.info("Initializing agent")
-    agent = TabularSARSA(env)
+    agent = SemiGradientSARSA(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
         max_ep_steps=args.num_steps,

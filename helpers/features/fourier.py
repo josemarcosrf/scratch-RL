@@ -2,14 +2,14 @@ import numpy as np
 
 
 class FourierBasis:
-    def __init__(self, interval_len:int, order: int, c: np.array) -> None:
+    def __init__(self, order: int, c: np.array) -> None:
         """Fourier Basis lienar transform.
 
         Args:
             order (int): The number of Fourier basis
-            c (np.array): vector of shape (N+1, D) to deterine the functions frequencies along each axis
+            c (np.array): vector of shape (N+1, D) to deterine the functions
+                          frequencies along each axis
         """
-        self.T = interval_len
         self.N = order
         self.c = c
         # Defines a function for each feature
@@ -18,18 +18,22 @@ class FourierBasis:
             for i in range(self.N + 1)
         ]
 
+    @staticmethod
+    def is_normalized(state: np.array):
+        assert np.all(state >= 0) and np.all(state <= 1)
+
     def encode(self, state: np.array) -> np.array:
-        state /= self.T  # so we are in the interval [0..1]
+        self.is_normalized(state)
         return np.array([b_i(state) for b_i in self.basis])
 
 
 if __name__ == "__main__":
-    """Creates a Fourier Basis transform instance and generates the 6 basis functions
-    showed in figure 9.4, page 207 of Sutton & Barto's
-    'Reinforcement Learning: An Introduction' book
-    """
+
     import matplotlib.pyplot as plt
 
+    # Creates a Fourier Basis transform instance and generates the 6 basis functions
+    # showed in figure 9.4, page 207 of Sutton & Barto's
+    # 'Reinforcement Learning: An Introduction' book
     N = 5
     c = np.array(
         [
@@ -43,8 +47,8 @@ if __name__ == "__main__":
     )
     fb = FourierBasis(1, N, c)
 
+    # generate normalized 2D states
     x, y = np.meshgrid(np.arange(0, 1, 0.1), np.arange(0, 1, 0.1))
-
     fig = plt.figure()
 
     for b_idx in range(0, N + 1):
