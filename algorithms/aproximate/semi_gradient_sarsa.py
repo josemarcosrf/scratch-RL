@@ -11,7 +11,6 @@ from algorithms import State
 from helpers.cli import get_cli_parser
 from helpers.environment import get_env
 from helpers.environment import get_env_report_functions
-
 from helpers.io import init_logger
 
 # mypy: ignore-errors
@@ -20,10 +19,7 @@ from helpers.io import init_logger
 logger = logging.getLogger(__name__)
 
 
-
-
-
-class SemiGradientSARSA():
+class SemiGradientSARSA:
     def __init__(self, env, n_params: int = 5):
 
         """Initializes a Semi Gradient SARSA agent for the given environment.
@@ -50,7 +46,9 @@ class SemiGradientSARSA():
 
         return np.argmax(self.Q[state][:])
 
-    def observe(self, s: State, a: int, r: float, next_s: State, next_a: int, terminal: bool) -> int:
+    def observe(
+        self, s: State, a: int, r: float, next_s: State, next_a: int, terminal: bool
+    ) -> int:
         """Here is where the Q-update happens
 
         Args:
@@ -68,7 +66,6 @@ class SemiGradientSARSA():
         else:
             # Update with the estimate delta d = q(s',a';W) - q(s,a;W)
             delta_q = self.Q[next_s][next_a] - self.Q[s][a]
-
 
         self.Q[s][a] += self.alpha * (r + self.gamma * delta_q) * q_grad
 
@@ -116,7 +113,9 @@ class SemiGradientSARSA():
 
                 # Chose A' from S' using policy derived from Q
                 next_action = self.run_policy(next_state)
-                action = self.observe(state, action, reward, next_state, next_action, terminated)
+                action = self.observe(
+                    state, action, reward, next_state, next_action, terminated
+                )
 
                 if terminated or truncated:
                     break
@@ -132,7 +131,6 @@ class SemiGradientSARSA():
         self.env.close()
 
         return stats
-
 
 
 if __name__ == "__main__":
