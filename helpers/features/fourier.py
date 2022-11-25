@@ -1,8 +1,9 @@
 import numpy as np
+from loguru import logger
 
 
 class FourierBasis:
-    def __init__(self, order: int, c: np.array) -> None:
+    def __init__(self, state_range: int, order: int, c: np.array) -> None:
         """Fourier Basis lienar transform.
 
         Args:
@@ -10,6 +11,7 @@ class FourierBasis:
             c (np.array): vector of shape (N+1, D) to deterine the functions
                           frequencies along each axis
         """
+        self.L = state_range
         self.N = order
         self.c = c
         # Defines a function for each feature
@@ -23,8 +25,11 @@ class FourierBasis:
         assert np.all(state >= 0) and np.all(state <= 1)
 
     def encode(self, state: np.array) -> np.array:
+        state /= self.L
         self.is_normalized(state)
-        return np.array([b_i(state) for b_i in self.basis])
+        features = np.array([b_i(state) for b_i in self.basis])
+
+        return features
 
 
 if __name__ == "__main__":

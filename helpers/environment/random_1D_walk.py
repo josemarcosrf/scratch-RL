@@ -20,7 +20,7 @@ class Random1DWalk:
         #     size += 1
         self.size = size
         self.pos = size // 2  # starting position
-        self.grid = ["o"] * size
+        self.grid = ["o"] * (self.size + 1)
 
     @property
     def state_space(self):
@@ -45,10 +45,10 @@ class Random1DWalk:
         self.pos += action
 
         reward, terminated = 0, False
-        if self.pos == -1:
+        if self.pos == 0:
             reward = -1
             terminated = True
-        elif self.pos == len(self.grid):
+        elif self.pos == self.size:
             reward = 1
             terminated = True
 
@@ -64,6 +64,9 @@ class Random1DWalk:
             self.grid = [">"] * len(self.grid)
 
         print(self.grid)
+
+    def close(self):
+        pass
 
 
 if __name__ == "__main__":

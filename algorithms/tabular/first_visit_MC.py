@@ -1,4 +1,3 @@
-import logging
 import random
 from typing import Any
 from typing import Dict
@@ -6,6 +5,7 @@ from typing import List
 from typing import Tuple
 
 import numpy as np
+from loguru import logger
 from tqdm.auto import tqdm
 
 from algorithms import State
@@ -14,12 +14,9 @@ from algorithms.tabular import TabularAgent
 from helpers.cli import get_cli_parser
 from helpers.environment import get_env
 from helpers.environment import get_env_report_functions
-from helpers.io import init_logger
+from helpers.logio import init_logger
 
 # mypy: ignore-errors
-
-
-logger = logging.getLogger(__name__)
 
 
 class TabularMonteCarlo(TabularAgent):

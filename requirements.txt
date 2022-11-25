@@ -1,7 +1,7 @@
-coloredlogs>=15.0.1
 funcy>=1.17
 gym~=0.26.2
 halo>=0.0.31
+loguru>=0.6.0
 matplotlib~=3.6.2
 minigrid
 pydotdict>=3.3.11
