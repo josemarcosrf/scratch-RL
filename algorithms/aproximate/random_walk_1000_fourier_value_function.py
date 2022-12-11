@@ -1,12 +1,12 @@
 import argparse
 import logging
-import sys
 from typing import Any
 from typing import Callable
 from typing import Dict
 
 import numpy as np
 from loguru import logger
+from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
 
 from algorithms import State
@@ -136,8 +136,8 @@ if __name__ == "__main__":
 
     # Define a policy for the 1000-step random walk world
     def policy(_) -> int:
-        # No matter what state we are in, for this environment policy
-        # as we go left / right randomly with equal probability
+        # No matter what state we are in, as for this environment the policy
+        # is to go randomly left / right with equal probability
         return list(env.ACTIONS.keys())[np.random.binomial(1, 0.5)]
 
     # compute the real value function
@@ -154,8 +154,6 @@ if __name__ == "__main__":
         discount=0.95,
         step_size=0.5,
     )
-
-    from matplotlib import pyplot as plt
 
     fig, ax = plt.subplots(1, 2)
     ax[0].plot(true_v)
