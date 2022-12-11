@@ -34,8 +34,8 @@ class FourierLinearValueFunction:
 
 
 class SemiGradientTD:
-    r"""This class implements:
-    'Semi-gradient TD(0) for estimating v ≈ v_{\pi} (Chapter 9. - page 164)
+    r"""
+    Semi-gradient TD(0) for estimating v ≈ v_{\pi} (Chapter 9. - page 164)
     from Sutton and Barto's book 'Reinforcement Learning: An Introduction'
     """
 
@@ -111,25 +111,13 @@ def compute_true_value_function(env):
     return np.array(v_left) + np.array(v_right)
 
 
-def cli():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--env-size", required=True, type=int, help="Size of 1D random walk world"
-    )
-    parser.add_argument(
-        "--fourier-basis", type=int, default=5, help="Number of Fourier basis"
-    )
-    return parser
-
-
-if __name__ == "__main__":
-    """Implementation of:
+def figure_9_5(args):
+    """Reproduction of:
     'Figure 9.5: Fourier basis vs polynomials on the 1000-state random walk'
+
     from Sutton and Barto's book:
     'Reinforcement Learning: An Introduction'
     """
-
-    args = cli().parse_args()
 
     # Create the environment
     env = Random1DWalk(size=args.env_size)
@@ -162,3 +150,16 @@ if __name__ == "__main__":
     ax[1].set_title("Fourier Value Function")
     plt.legend()
     plt.show()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--env-size", required=True, type=int, help="Size of 1D random walk world"
+    )
+    parser.add_argument(
+        "--fourier-basis", type=int, default=5, help="Number of Fourier basis"
+    )
+    args = parser.parse_args()
+
+    figure_9_5(args)

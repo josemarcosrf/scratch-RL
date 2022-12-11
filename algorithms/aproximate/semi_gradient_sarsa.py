@@ -17,14 +17,16 @@ from helpers.logio import init_logger
 
 
 class SemiGradientSARSA:
-    def __init__(self, env, n_params: int = 5):
+    """On-policy control n-step Semi-gradient SARSA with function approximation
+    for episodic environents.
 
-        """Initializes a Semi Gradient SARSA agent for the given environment.
+    For simplicity we are assuming the following:
+        - actions range from 0 to n_actions
+        - There's no step-size scheduling (remains constant)
+    """
 
-        For simplicity we are assuming the following:
-         - actions range from 0 to n_actions
-         - There's no step-size scheduling (remains constant)
-        """
+    def __init__(self, env):
+
         super().__init__(env)
 
         # Init a Q-value approximate function
@@ -132,6 +134,8 @@ class SemiGradientSARSA:
 
 if __name__ == "__main__":
 
+    # reference impleentations:
+    # - https://github.com/self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto
     args = get_cli_parser("SARSA-learning options").parse_args()
 
     init_logger(level=args.log_level, my_logger=logger)

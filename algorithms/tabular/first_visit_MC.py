@@ -20,11 +20,13 @@ from helpers.logio import init_logger
 
 
 class TabularMonteCarlo(TabularAgent):
+    """Tabular first-visit Monte Carlo agent for episodic environments.
+
+    For simplicity we are assuming the following:
+        - actions range from 0 to n_actions
+    """
+
     def __init__(self, env):
-        """Initializes a tabular first-visit Monte Carlo agent for the given environment.
-        For simplicity we are assuming the following:
-         - actions range from 0 to n_actions
-        """
         super().__init__(env)
         self.Q = np.zeros(self.Q.shape)
         self.G = np.zeros(self.Q.shape)  # rewards accumulator

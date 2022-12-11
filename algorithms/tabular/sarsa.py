@@ -19,14 +19,14 @@ from helpers.logio import init_logger
 
 
 class TabularSARSA(TabularAgent):
+    """On-policy Control SARSA Tabular agent for episodic environments.
+
+    For simplicity we are assuming the following:
+        - actions range from 0 to n_actions
+        - There's no step-size scheduling (remains constant)
+    """
+
     def __init__(self, env):
-
-        """Initializes a SARSA Tabular agent for the given environment.
-
-        For simplicity we are assuming the following:
-         - actions range from 0 to n_actions
-         - There's no step-size scheduling (remains constant)
-        """
         super().__init__(env)
         logger.debug(f"Q has shape: {self.Q.shape}")
 

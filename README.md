@@ -16,8 +16,9 @@ self contained and in a single file aand with as little abstraction as possible.
          * [Tabular SARSA](#tabular-sarsa)
          * [Tabular Q-learning](#tabular-q-learning)
          * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
+      * [References and Implementations](#references-and-implementations)
 
-<!-- Added by: jose, at: mié 02 nov 2022 22:02:32 CET -->
+<!-- Added by: jose, at: dom 11 dic 2022 13:59:43 CET -->
 
 <!--te-->
 
@@ -49,7 +50,7 @@ pip install -r requirements-dev.txt
 
 ## Run
 
-> If at run time, when running and environtment with `render_mode="human"` you see:
+> If at run time, when running an environtment with `render_mode="human"` you see:
 > `libGL error: MESA-LOADER`, you might need to run like:
 > ```bash
 > MESA_LOADER_DRIVER_OVERRIDE=i965 python <your-script.py>
@@ -142,3 +143,10 @@ python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
 # first-visit MC on Blackjack
 python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -ne 500000
 ```
+
+
+## References and Implementations
+
+ - [Reinforcement Learning:An Introduction - Richard S. Sutton and Andrew G. Barto](http://incompleteideas.net/book/bookdraft2018jan1.pdf)
+ - [syyxtl/Reinforcement_learning](https://github.com/syyxtl/Reinforcement_learning/)
+ - [self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto](https://github.com/self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto)
