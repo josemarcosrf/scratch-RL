@@ -51,6 +51,14 @@ ENV_META: Dict[str, Dict[str, Any]] = {
             "desc": ["SFFF", "FHFH", "FFFH", "HFFG"],
         },
     },
+    "MountainCar-v0": {
+        "action_map": {
+            0: "accelerate left",
+            1: "don't accelerate",
+            2: "accelerate right",
+        },
+        "params": {},
+    },
 }
 
 
@@ -72,6 +80,8 @@ def get_env_name(env):
 def get_env_state_dims(env) -> Union[int, Tuple[int, ...]]:
     if isinstance(env.observation_space, gym.spaces.tuple.Tuple):
         return tuple(d.n for d in env.observation_space)
+    if isinstance(env.observation_space, gym.spaces.box.Box):
+        return env.observation_space.shape
 
     return env.observation_space.n
 

@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     args = get_cli_parser("SARSA-learning options").parse_args()
 
-    init_logger(level=args.log_level, my_logger=logger)
+    init_logger(level=args.log_level, logger=logger)
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
