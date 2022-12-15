@@ -13,12 +13,11 @@ self contained and in a single file aand with as little abstraction as possible.
       * [How To](#how-to)
          * [Install](#install)
       * [Run](#run)
-         * [Tabular SARSA](#tabular-sarsa)
-         * [Tabular Q-learning](#tabular-q-learning)
-         * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
+         * [Experiments](#experiments)
+            * [Tabular SARSA](#tabular-sarsa)
       * [References and Implementations](#references-and-implementations)
 
-<!-- Added by: jose, at: dom 11 dic 2022 13:59:43 CET -->
+<!-- Added by: jose, at: jue 15 dic 2022 16:17:43 CET -->
 
 <!--te-->
 
@@ -48,7 +47,7 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-## Run
+### Run
 
 > If at run time, when running an environtment with `render_mode="human"` you see:
 > `libGL error: MESA-LOADER`, you might need to run like:
@@ -58,95 +57,105 @@ pip install -r requirements-dev.txt
 > For more info check [this blogpost](https://devcodetutorial.com/faq/libgl-error-failed-to-load-drivers-iris-and-swrast-in-ubuntu-20-04)
 
 
+#### Tabular SARSA
+<details>
+  <summary>Details</summary>
 
-### Tabular SARSA
+   **Valid environments:**
 
-**Valid environments:**
+   - `CliffWalking-v0`
+   - `FrozenLake-v1`
 
- - `CliffWalking-v0`
- - `FrozenLake-v1`
+   **Examples:**
 
-**Examples:**
+   ```bash
+   # SARSA on Cliff World
+   python -m algorithms.tabular.sarsa -e CliffWalking-v0
 
-```bash
- # SARSA on Cliff World
-python -m algorithms.tabular.sarsa -e CliffWalking-v0
+   # Output (policy):
+   ┌───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬──────┐
+   │ right │ right │ right │ right │ right │ right │ right │ right │ right │ right │ right │ down │
+   ├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
+   │ up    │ up    │ right │ right │ up    │ up    │ right │ right │ up    │ right │ up    │ down │
+   ├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
+   │ up    │ up    │ right │ right │ up    │ up    │ left  │ left  │ left  │ right │ right │ down │
+   ├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
+   │ up    │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x    │
+   └───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
+   ```
 
-# Output (policy):
-┌───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬──────┐
-│ right │ right │ right │ right │ right │ right │ right │ right │ right │ right │ right │ down │
-├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
-│ up    │ up    │ right │ right │ up    │ up    │ right │ right │ up    │ right │ up    │ down │
-├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
-│ up    │ up    │ right │ right │ up    │ up    │ left  │ left  │ left  │ right │ right │ down │
-├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┼──────┤
-│ up    │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x     │ x    │
-└───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴──────┘
-```
+   Also plots each epidoe `rewards`, `length` and the number of each `state's visits`:
 
-Also plots each epidoe `rewards`, `length` and the number of each `state's visits`:
+   ![./assets/sarsa_cliffwalks.png](assets/sarsa_cliffwalk.png "SARSA on CliffWalk stats")
 
-![./assets/sarsa_cliffwalks.png](assets/sarsa_cliffwalk.png "SARSA on CliffWalk stats")
+   ```bash
+   # SARSA on FrozenLake
+   python -m algorithms.tabular.sarsa -e FrozenLake-v1 -ep 0.5 -ne 5000
 
-```bash
-# SARSA on FrozenLake
-python -m algorithms.tabular.sarsa -e FrozenLake-v1 -ep 0.5 -ne 5000
-
-# Output (policy)
-┌───────┬───────┬───────┬────┐
-│ right │ right │ down  │ up │
-├───────┼───────┼───────┼────┤
-│ right │ x     │ down  │ x  │
-├───────┼───────┼───────┼────┤
-│ right │ right │ down  │ x  │
-├───────┼───────┼───────┼────┤
-│ x     │ right │ right │ x  │
-└───────┴───────┴───────┴────┘
-```
-
-### Tabular Q-learning
-
-**Valid environments:**
-
- - `CliffWalking-v0`
- - `FrozenLake-v1`
+   # Output (policy)
+   ┌───────┬───────┬───────┬────┐
+   │ right │ right │ down  │ up │
+   ├───────┼───────┼───────┼────┤
+   │ right │ x     │ down  │ x  │
+   ├───────┼───────┼───────┼────┤
+   │ right │ right │ down  │ x  │
+   ├───────┼───────┼───────┼────┤
+   │ x     │ right │ right │ x  │
+   └───────┴───────┴───────┴────┘
+   ```
+</details>
 
 
-**Examples:**
+#### Tabular Q-learning
+<details>
+  <summary>Details</summary>
 
-```bash
-# Q-learning on Frozen lake
-python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
+   **Valid environments:**
 
-# Output (policy):
-┌───────┬───────┬───────┬──────┐
-│ down  │ right │ down  │ left │
-├───────┼───────┼───────┼──────┤
-│ down  │ x     │ down  │ x    │
-├───────┼───────┼───────┼──────┤
-│ right │ down  │ down  │ x    │
-├───────┼───────┼───────┼──────┤
-│ x     │ right │ right │ x    │
-└───────┴───────┴───────┴──────┘
-```
-
-### Tabular first-visit Monte Carlo
-
-**Valid environments:**
-
- - `Blackjack-v1`
+   - `CliffWalking-v0`
+   - `FrozenLake-v1`
 
 
-**Examples:**
+   **Examples:**
 
-```bash
-# first-visit MC on Blackjack
-python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -ne 500000
-```
+   ```bash
+   # Q-learning on Frozen lake
+   python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
 
+   # Output (policy):
+   ┌───────┬───────┬───────┬──────┐
+   │ down  │ right │ down  │ left │
+   ├───────┼───────┼───────┼──────┤
+   │ down  │ x     │ down  │ x    │
+   ├───────┼───────┼───────┼──────┤
+   │ right │ down  │ down  │ x    │
+   ├───────┼───────┼───────┼──────┤
+   │ x     │ right │ right │ x    │
+   └───────┴───────┴───────┴──────┘
+   ```
+</details>
+
+
+#### Tabular first-visit Monte Carlo
+<details>
+  <summary>Details</summary>
+
+   **Valid environments:**
+
+   - `Blackjack-v1`
+
+
+   **Examples:**
+
+   ```bash
+   # first-visit MC on Blackjack
+   python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -ne 500000
+   ```
+</details>
 
 ## References and Implementations
 
- - [Reinforcement Learning:An Introduction - Richard S. Sutton and Andrew G. Barto](http://incompleteideas.net/book/bookdraft2018jan1.pdf)
+ - [**Reinforcement Learning:An Introduction - Richard S. Sutton and Andrew G. Barto**](http://incompleteideas.net/book/bookdraft2018jan1.pdf)
+ - [michaeloneill RL-tutorial](https://michaeloneill.github.io/RL-tutorial.html)
  - [syyxtl/Reinforcement_learning](https://github.com/syyxtl/Reinforcement_learning/)
  - [self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto](https://github.com/self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto)

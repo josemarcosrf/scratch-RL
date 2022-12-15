@@ -144,6 +144,13 @@ class SemiGradientSARSA:
 
 
 class QNetwork(nn.Module):
+    """Simple Feedforward NN for **linear aproximation** of a Q-function.
+
+    Note: instead of having Q: SxA -> R this implements Q: S -> R^|A|
+    This is: The network takes a given state S and outputs scores
+    for each of the actions.
+    """
+
     def __init__(self):
         super().__init__()
         # Define the neural network
@@ -164,13 +171,13 @@ class QNetwork(nn.Module):
 
     @staticmethod
     def featurize(state: State) -> np.array:
-        # polinomial features. i.e: [x, y, x * y, x**2, y**2]
+        # Sort of polinomial features. i.e: [x, y, x * y, x**2, y**2]
         _state = list(state)
         return torch.FloatTensor(_state + [s1 * s2 for s1 in _state for s2 in _state])
 
-    def update(self, s: State, delta: float) -> float:
+    def update(self, s: State, td: float) -> float:
         pred = self.forward(s)
-        loss = self.criterion(pred, delta)
+        loss = self.criterion(pred, td)
         # Zero gradients, perform a backward pass, and update the weights
         self.optimizer.zero_grad()
         loss.backward()
@@ -183,6 +190,7 @@ if __name__ == "__main__":
 
     # reference implementations:
     # - https://github.com/self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto
+    # - https://stackoverflow.com/questions/45377404/episodic-semi-gradient-sarsa-with-neural-network
     args = get_cli_parser("SARSA-learning options").parse_args()
 
     init_logger(level=args.log_level, logger=logger)
@@ -200,9 +208,6 @@ if __name__ == "__main__":
         epsilon=args.explore_probability,
     )
 
-    # print_policy, plot_stats = get_env_report_functions(env)
-    # print_policy(agent, stats)
-    # plot_stats(agent, stats)
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(1, 3)
