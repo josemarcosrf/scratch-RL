@@ -12,12 +12,13 @@ self contained and in a single file aand with as little abstraction as possible.
    * [RL from scratch](#rl-from-scratch)
       * [How To](#how-to)
          * [Install](#install)
-      * [Run](#run)
-         * [Experiments](#experiments)
+         * [Run](#run)
             * [Tabular SARSA](#tabular-sarsa)
+            * [Tabular Q-learning](#tabular-q-learning)
+            * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
       * [References and Implementations](#references-and-implementations)
 
-<!-- Added by: jose, at: jue 15 dic 2022 16:17:43 CET -->
+<!-- Added by: jose, at: jue 15 dic 2022 17:09:10 CET -->
 
 <!--te-->
 
