@@ -111,6 +111,8 @@ class SemiGradientSARSA:
             action = self.run_policy(state)
 
             ep_loss = []
+            q_values = []
+            targets = []
             for i in range(max_ep_steps):
                 # Take action A, observe S' and R
                 next_state, reward, terminated, truncated, _ = self.env.step(action)
@@ -128,7 +130,11 @@ class SemiGradientSARSA:
                 g = reward + self.gamma * q_ns
                 target = q_s.detach().clone()
                 target[action] = g[next_action]
-                loss = self.Q.update(q_s, target)
+
+                # TODO: Implement a better batching.
+                # For now: Accumulate for batch update of the Q-network
+                q_values.append(q_s)
+                targets.append(target)
 
                 if terminated or truncated:
                     break
@@ -136,12 +142,20 @@ class SemiGradientSARSA:
                 # Collect some stats
                 stats["ep_length"][ep_i] = i
                 stats["ep_rewards"][ep_i] += reward
-                ep_loss.append(loss)
 
                 state = next_state
 
             # Average loss over episode steps
+            ep_loss = self.Q.update(torch.vstack(q_values), torch.vstack(targets))
             stats["loss"].append(np.mean(ep_loss))
+            ep_r = stats["ep_rewards"][ep_i]
+            ep_steps = stats["ep_length"][ep_i]
+            logger.debug(
+                f"Episode: {ep_i} -> R:{ep_r} "
+                f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
+            )
+            if ep_r > -199:
+                logger.warning(f"🎉 Reward: {ep_r}")
 
         # Print the policy over the map
         self.env.close()
@@ -169,6 +183,10 @@ class QNetwork(nn.Module):
         self.optimizer = torch.optim.SGD(self.parameters(), lr=lr)
 
     def forward(self, s: State):
+        """Given a state S returns a measure of each possible actions value.
+        Returns logits as we want to preserve a sense of the total state value
+        that would be always normalized if we were to softmax.
+        """
         device = next(self.parameters()).device.type
         x = self.featurize(s).to(device)
         x = self.fc1(x)
@@ -188,8 +206,6 @@ class QNetwork(nn.Module):
         loss = self.criterion(q_s, target)
         loss.backward()
         self.optimizer.step()
-
-        logger.debug(f"Loss: {loss}")
 
         return loss.detach().cpu().numpy().item()
 
