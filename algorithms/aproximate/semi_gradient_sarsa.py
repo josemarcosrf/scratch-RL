@@ -1,12 +1,13 @@
 import random
+from itertools import product
 from typing import Any
 from typing import Dict
+from typing import List
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from loguru import logger
 from tqdm.auto import tqdm
 
@@ -17,20 +18,26 @@ from helpers.environment import get_env_action_dims
 from helpers.environment import get_env_action_name_map
 from helpers.environment import get_env_shape
 from helpers.environment import get_env_state_dims
+from helpers.features.tile_coding import IHT
+from helpers.features.tile_coding import tiles
 from helpers.logio import init_logger
+from helpers.models import QNetwork
 
 # mypy: ignore-errors
+
+# TODO: Implement the exact same but with the tested fourier aproximator
+# TODO: Implement experience reply buffer instead
 
 
 def plot_stats(stats):
     _, ax = plt.subplots(1, 3)
-
+    # Episode steps
     ax[0].set_title("Episode length")
     ax[0].plot(stats["ep_length"])
-
+    # Total episode rewards
     ax[1].set_title("Episode rewards")
     ax[1].plot(stats["ep_rewards"])
-
+    # Loss over training
     ax[2].set_title("Loss over time")
     ax[2].plot(stats["loss"])
     plt.show()
@@ -45,23 +52,95 @@ class SemiGradientSARSA:
         - There's no step-size scheduling (remains constant)
     """
 
-    def __init__(self, env, step_size: float):
-        """_summary_
-
-        Args:
-            env (_type_): _description_
-            step_size (float): learning step size (alpha)
-        """
+    def __init__(
+        self, env, step_size: float, tiling_size: int = 2**10, num_tilings: int = 8
+    ):
         super().__init__()
+        # Environment
         self.env = env
         self.n_states = get_env_state_dims(env)
         self.n_actions = get_env_action_dims(env)
         self.action_map = get_env_action_name_map(env)
         self.env_shape = get_env_shape(env)
-        # Init a Q-value approximate function
+        # State featurizer
+        box = env.observation_space
+        self.tiling_size = tiling_size
+        self.num_tilings = num_tilings
+        self.boundaries = list(zip(box.low, box.high))
+        self.iht = IHT(self.tiling_size)
+        # Q-value approximate function
+        # Note: instead of having Q: SxA -> R this implements Q: S -> R^|A|
+        # This is: The network takes a given state S and outputs scores
+        # for each of the actions
+        # TODO: Make it featurizer aware
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.Q = QNetwork(lr=step_size).to(self.device)
+        self.Q = QNetwork(
+            input_size=self.tiling_size,
+            output_size=self.n_actions,
+            lr=step_size / self.num_tilings,
+        ).to(self.device)
         logger.notice(f"Running Q-Network in '{self.device}' device")
+
+    def plot_q_function(self):
+        # Generate X, Y coordinates
+        ranges = []
+        box = self.env.observation_space
+        if box.bounded_above.any() and box.bounded_below.any():
+            for (l, h) in zip(box.low, box.high):
+                ranges.append(np.arange(l, h, 0.01))
+
+        x, y = np.meshgrid(*ranges)
+        # Compute the Q-values
+        states = list(product(*ranges))
+        with torch.no_grad():
+            z = (
+                self.Q(self.featurize(states))
+                .cpu()
+                .numpy()
+                .max(axis=-1)
+                .reshape(x.shape)
+            )
+        # Plot
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.add_subplot(111, projection="3d")
+        ax.plot_surface(x, y, z, cmap="viridis", edgecolor="green")
+        ax.set_title("Q-value function")
+        plt.show()
+
+    @staticmethod
+    def poly_featurize(states: Union[State, List[State]]) -> torch.FloatTensor:
+        """Sort of polinomial features. i.e: [x, y, x * y, x**2, y**2]"""
+
+        def _feat(state):
+            _state = list(state)
+            return torch.FloatTensor(
+                _state + [s1 * s2 for s1 in _state for s2 in _state]
+            )
+
+        if isinstance(states, list):
+            return torch.vstack([_feat(s) for s in states])
+
+        return _feat(states)
+
+    def tile_featurize(self, states: Union[State, List[State]]) -> torch.FloatTensor:
+        def _feat(state):
+            indices = tiles(
+                self.iht,
+                self.num_tilings,
+                [
+                    self.num_tilings * s / (b[1] - b[0])
+                    for s, b in zip(state, self.boundaries)
+                ],
+            )
+            # 1-hot encoding
+            x = np.zeros(self.tiling_size)
+            x[indices] = 1
+            return torch.FloatTensor(x)
+
+        if isinstance(states, list):
+            return torch.vstack([_feat(s) for s in states])
+
+        return _feat(states)
 
     def run_policy(self, state: State) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
@@ -73,7 +152,7 @@ class SemiGradientSARSA:
             return np.random.choice(range(self.n_actions))
 
         with torch.no_grad():
-            return np.argmax(self.Q(state).cpu()).numpy().item()
+            return np.argmax(self.Q(self.featurize(state)).cpu()).numpy().item()
 
     def learn(
         self,
@@ -95,6 +174,7 @@ class SemiGradientSARSA:
         logger.info("Start learning")
         self.gamma = discount
         self.epsilon = epsilon
+        self.featurize = self.tile_featurize  # set tiling as encoding of states
 
         stats = {
             "ep_length": np.zeros(num_episodes),
@@ -120,13 +200,11 @@ class SemiGradientSARSA:
                 # Chose A' from S' using policy derived from Q
                 next_action = self.run_policy(next_state)
 
-                # NOTE:
-                # As we modified the Q-function to output scores for all actions
-                # and we want to use the gradients from pytorch we modify
-                # the update rule by reframing it as a supervised target for backprop
-                # using MSELoss
-                q_s = self.Q(state)
-                q_ns = self.Q(next_state)
+                # NOTE: As we modified the Q-function to output scores for all actions
+                # and we want to use the gradients from pytorch we modify the update
+                # rule by reframing it as a supervised target for backprop using MSELoss
+                q_s = self.Q(self.featurize(state))
+                q_ns = self.Q(self.featurize(next_state))
                 g = reward + self.gamma * q_ns
                 target = q_s.detach().clone()
                 target[action] = g[next_action]
@@ -145,8 +223,13 @@ class SemiGradientSARSA:
 
                 state = next_state
 
-            # Average loss over episode steps
+            # Update Q-network
             ep_loss = self.Q.update(torch.vstack(q_values), torch.vstack(targets))
+            # TODO: Remove
+            if ep_i % 1000 == 0:
+                self.plot_q_function()
+
+            # Average loss over episode steps
             stats["loss"].append(np.mean(ep_loss))
             ep_r = stats["ep_rewards"][ep_i]
             ep_steps = stats["ep_length"][ep_i]
@@ -154,6 +237,7 @@ class SemiGradientSARSA:
                 f"Episode: {ep_i} -> R:{ep_r} "
                 f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
             )
+            # TODO: Remove
             if ep_r > -199:
                 logger.warning(f"🎉 Reward: {ep_r}")
 
@@ -161,53 +245,6 @@ class SemiGradientSARSA:
         self.env.close()
 
         return stats
-
-
-class QNetwork(nn.Module):
-    """Simple Feedforward NN for **linear aproximation** of a Q-function.
-
-    Note: instead of having Q: SxA -> R this implements Q: S -> R^|A|
-    This is: The network takes a given state S and outputs scores
-    for each of the actions.
-    """
-
-    def __init__(self, lr: float):
-        super().__init__()
-        # Define the neural network
-        # TODO: Figure the input size from the env state snd action-space
-        self.fc1 = nn.Linear(6, 4)
-        self.fc2 = nn.Linear(4, 3)
-        # Define a loss function
-        self.criterion = nn.MSELoss()
-        # Define an optimizer
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=lr)
-
-    def forward(self, s: State):
-        """Given a state S returns a measure of each possible actions value.
-        Returns logits as we want to preserve a sense of the total state value
-        that would be always normalized if we were to softmax.
-        """
-        device = next(self.parameters()).device.type
-        x = self.featurize(s).to(device)
-        x = self.fc1(x)
-        x = self.fc2(x)
-        return x
-        # return F.softmax(x, dim=-1)
-
-    @staticmethod
-    def featurize(state: State) -> np.array:
-        # Sort of polinomial features. i.e: [x, y, x * y, x**2, y**2]
-        _state = list(state)
-        return torch.FloatTensor(_state + [s1 * s2 for s1 in _state for s2 in _state])
-
-    def update(self, q_s, target) -> float:
-        # Zero the gradients, perform a backward pass, and update the weights
-        self.optimizer.zero_grad()
-        loss = self.criterion(q_s, target)
-        loss.backward()
-        self.optimizer.step()
-
-        return loss.detach().cpu().numpy().item()
 
 
 if __name__ == "__main__":
