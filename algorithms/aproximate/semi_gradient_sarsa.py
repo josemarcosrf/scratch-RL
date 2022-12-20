@@ -219,10 +219,8 @@ class SemiGradientSARSA:
                 stats["ep_rewards"][ep_i] += reward
 
                 if terminated or truncated:
-                    logger.info(
-                        f"terminated={terminated} | "
-                        f"truncated={truncated} | last R:{reward}"
-                    )
+                    if terminated:
+                        logger.info(f"terminated! | last R:{reward}")
                     break
 
                 state = next_state
@@ -277,3 +275,11 @@ if __name__ == "__main__":
     )
 
     plot_stats(stats)
+
+    import pickle
+
+    with open("agent.pkl", "wb") as f:
+        pickle.dump(agent, f)
+
+    with open("stats.pkl", "wb") as f:
+        pickle.dump(stats, f)
