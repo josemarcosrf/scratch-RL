@@ -18,6 +18,7 @@ from helpers.environment import get_env_action_dims
 from helpers.environment import get_env_action_name_map
 from helpers.environment import get_env_shape
 from helpers.environment import get_env_state_dims
+from helpers.features.fourier import FourierBasis
 from helpers.features.tile_coding import IHT
 from helpers.features.tile_coding import tiles
 from helpers.logio import init_logger
@@ -37,9 +38,6 @@ def plot_stats(stats):
     # Total episode rewards
     ax[1].set_title("Episode rewards")
     ax[1].plot(stats["ep_rewards"])
-    # Loss over training
-    ax[2].set_title("Loss over time")
-    ax[2].plot(stats["loss"])
     plt.show()
 
 
@@ -87,10 +85,11 @@ class SemiGradientSARSA:
         box = self.env.observation_space
         if box.bounded_above.any() and box.bounded_below.any():
             for (l, h) in zip(box.low, box.high):
-                ranges.append(np.arange(l, h, (h - l) / self.num_tilings))
+                step_size = (h - l) / self.num_tilings
+                ranges.append(np.arange(l, h, step_size))
 
         x, y = np.meshgrid(*ranges)
-        # Compute the Q-values
+        # Compute the Q-values and the get max ovver actions as the State value
         states = list(product(*ranges))
         with torch.no_grad():
             z = (
@@ -220,7 +219,7 @@ class SemiGradientSARSA:
 
                 if terminated or truncated:
                     if terminated:
-                        logger.info(f"terminated! | last R:{reward}")
+                        logger.notice(f"terminated! | last R:{reward}")
                     break
 
                 state = next_state
@@ -228,9 +227,9 @@ class SemiGradientSARSA:
             # Update Q-network
             ep_loss = self.Q.update(torch.vstack(q_values), torch.vstack(targets))
 
-            # # TODO: Remove
-            # if ep_i % 1000 == 0:
-            #     self.plot_q_function()
+            # TODO: Remove
+            if ep_i % 1000 == 0:
+                self.plot_q_function()
 
             # Average loss over episode steps
             stats["loss"].append(np.mean(ep_loss))
@@ -275,11 +274,3 @@ if __name__ == "__main__":
     )
 
     plot_stats(stats)
-
-    import pickle
-
-    with open("agent.pkl", "wb") as f:
-        pickle.dump(agent, f)
-
-    with open("stats.pkl", "wb") as f:
-        pickle.dump(stats, f)

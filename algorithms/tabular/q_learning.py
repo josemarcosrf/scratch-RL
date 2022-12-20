@@ -19,7 +19,7 @@ from helpers.logio import init_logger
 
 
 class TabularQLearning(TabularAgent):
-    """On-policy Control Q-learning Tabular agent for episodic environments.
+    """On-policy TD Control Q-learning Tabular agent for episodic environments.
 
     For simplicity we are assuming the following:
         - actions range from 0 to n_actions
@@ -53,7 +53,8 @@ class TabularQLearning(TabularAgent):
         epsilon: float,
         step_size: float,
     ) -> Dict[str, Any]:  # type: ignore
-        """Implements the Off-policy TD Control algorithm 'Tabular Q-learning'
+        """Implements the Off-policy TD Control learning algorithm learning
+        'Tabular Q-learning'
 
         Args:
             num_episodes (int): max number of episodes

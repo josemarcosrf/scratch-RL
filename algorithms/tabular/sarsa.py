@@ -19,7 +19,7 @@ from helpers.logio import init_logger
 
 
 class TabularSARSA(TabularAgent):
-    """On-policy Control SARSA Tabular agent for episodic environments.
+    """On-policy TD Control SARSA Tabular agent for episodic environments.
 
     For simplicity we are assuming the following:
         - actions range from 0 to n_actions
@@ -66,7 +66,7 @@ class TabularSARSA(TabularAgent):
         epsilon: float,
         step_size: float,
     ) -> Dict[str, Any]:
-        """Implements the On-policy TD Control algorithm 'Tabular SARSA'
+        """Implements the On-policy TD Control learning algorithm 'Tabular SARSA'
 
         Args:
             num_episodes (int): max number of episodes
