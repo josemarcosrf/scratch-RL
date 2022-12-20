@@ -9,23 +9,21 @@ Therefore it is structured with simplicity in mind, with each algorithm being
 self contained and in a single file aand with as little abstraction as possible.
 
 <!--ts-->
-   * [RL from scratch](#rl-from-scratch)
-      * [How To](#how-to)
-         * [Install](#install)
-         * [Run](#run)
-            * [Tabular SARSA](#tabular-sarsa)
-            * [Tabular Q-learning](#tabular-q-learning)
-            * [Tabular first-visit Monte Carlo](#tabular-first-visit-monte-carlo)
-      * [References and Implementations](#references-and-implementations)
+* [RL from scratch](#rl-from-scratch)
+   * [Install](#install)
+   * [Run](#run)
+      * [Algorithms](#algorithms)
+         * [Tabular](#tabular)
+         * [Function aproximation](#function-aproximation)
+   * [References and Implementations](#references-and-implementations)
 
-<!-- Added by: jose, at: jue 15 dic 2022 17:09:10 CET -->
+<!-- Created by https://github.com/ekalinin/github-markdown-toc -->
+<!-- Added by: ubuntu, at: Tue Dec 20 11:02:45 UTC 2022 -->
 
 <!--te-->
 
 
-## How To
-
-### Install
+## Install
 
 1. Install mesa glx drivers:
 
@@ -48,7 +46,7 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-### Run
+## Run
 
 > If at run time, when running an environtment with `render_mode="human"` you see:
 > `libGL error: MESA-LOADER`, you might need to run like:
@@ -58,9 +56,12 @@ pip install -r requirements-dev.txt
 > For more info check [this blogpost](https://devcodetutorial.com/faq/libgl-error-failed-to-load-drivers-iris-and-swrast-in-ubuntu-20-04)
 
 
-#### Tabular SARSA
+### Algorithms
+
+#### Tabular
+
 <details>
-  <summary>Details</summary>
+  <summary>SARSA</summary>
 
    **Valid environments:**
 
@@ -107,9 +108,8 @@ pip install -r requirements-dev.txt
 </details>
 
 
-#### Tabular Q-learning
 <details>
-  <summary>Details</summary>
+  <summary>Q-learning</summary>
 
    **Valid environments:**
 
@@ -137,9 +137,8 @@ pip install -r requirements-dev.txt
 </details>
 
 
-#### Tabular first-visit Monte Carlo
 <details>
-  <summary>Details</summary>
+  <summary>first-visit Monte Carlo</summary>
 
    **Valid environments:**
 
@@ -152,6 +151,34 @@ pip install -r requirements-dev.txt
    # first-visit MC on Blackjack
    python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -ne 500000
    ```
+</details>
+
+
+#### Function aproximation
+
+<details>
+  <summary>Fourier Basis for 1000-step random walk</summary>
+
+</details>
+
+
+<details>
+  <summary>Semi-gradient SARSA</summary>
+
+   **Valid environments:**
+
+   - `MountainCar-v0`
+
+
+   **Examples:**
+
+   ```bash
+   # semi-gradient SARSA with neural netowrk function aprox. and tiling
+   python -m algorithms.aproximate.semi_gradient_sarsa -e MountainCar-v0 \
+      -ne 500000 \
+      -st 0.5 \
+      -ep 0.1
+
 </details>
 
 ## References and Implementations

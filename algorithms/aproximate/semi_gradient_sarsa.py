@@ -87,7 +87,7 @@ class SemiGradientSARSA:
         box = self.env.observation_space
         if box.bounded_above.any() and box.bounded_below.any():
             for (l, h) in zip(box.low, box.high):
-                ranges.append(np.arange(l, h, 0.01))
+                ranges.append(np.arange(l, h, (h - l) / self.num_tilings))
 
         x, y = np.meshgrid(*ranges)
         # Compute the Q-values
@@ -214,20 +214,25 @@ class SemiGradientSARSA:
                 q_values.append(q_s)
                 targets.append(target)
 
-                if terminated or truncated:
-                    break
-
                 # Collect some stats
                 stats["ep_length"][ep_i] = i
                 stats["ep_rewards"][ep_i] += reward
+
+                if terminated or truncated:
+                    logger.info(
+                        f"terminated={terminated} | "
+                        f"truncated={truncated} | last R:{reward}"
+                    )
+                    break
 
                 state = next_state
 
             # Update Q-network
             ep_loss = self.Q.update(torch.vstack(q_values), torch.vstack(targets))
-            # TODO: Remove
-            if ep_i % 1000 == 0:
-                self.plot_q_function()
+
+            # # TODO: Remove
+            # if ep_i % 1000 == 0:
+            #     self.plot_q_function()
 
             # Average loss over episode steps
             stats["loss"].append(np.mean(ep_loss))
@@ -237,9 +242,6 @@ class SemiGradientSARSA:
                 f"Episode: {ep_i} -> R:{ep_r} "
                 f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
             )
-            # TODO: Remove
-            if ep_r > -199:
-                logger.warning(f"🎉 Reward: {ep_r}")
 
         # Print the policy over the map
         self.env.close()
