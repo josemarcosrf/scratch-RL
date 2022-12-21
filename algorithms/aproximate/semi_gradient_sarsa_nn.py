@@ -3,6 +3,7 @@ from itertools import product
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Tuple
 from typing import Union
 
 import matplotlib.pyplot as plt
@@ -78,6 +79,10 @@ class SemiGradientSARSA:
             lr=step_size / self.num_tilings,
         ).to(self.device)
         logger.notice(f"Running Q-Network in '{self.device}' device")
+        # Prepare for interactive plotting
+        plt.ion()
+        plt.show()
+        self.fig = plt.figure(figsize=(8, 6))
 
     def plot_q_function(self):
         # Generate X, Y coordinates
@@ -85,7 +90,7 @@ class SemiGradientSARSA:
         box = self.env.observation_space
         if box.bounded_above.any() and box.bounded_below.any():
             for (l, h) in zip(box.low, box.high):
-                step_size = (h - l) / self.num_tilings
+                step_size = (h - l) / self.num_tilings / 10
                 ranges.append(np.arange(l, h, step_size))
 
         x, y = np.meshgrid(*ranges)
@@ -100,11 +105,12 @@ class SemiGradientSARSA:
                 .reshape(x.shape)
             )
         # Plot
-        fig = plt.figure(figsize=(8, 6))
-        ax = fig.add_subplot(111, projection="3d")
-        ax.plot_surface(x, y, z, cmap="viridis", edgecolor="green")
+        self.fig.clear()
+        ax = self.fig.add_subplot(111, projection="3d")
         ax.set_title("Q-value function")
-        plt.show()
+        ax.plot_surface(x, y, z, cmap="viridis", edgecolor="green")
+        plt.draw()
+        plt.pause(0.001)
 
     @staticmethod
     def poly_featurize(states: Union[State, List[State]]) -> torch.FloatTensor:
@@ -141,17 +147,52 @@ class SemiGradientSARSA:
 
         return _feat(states)
 
-    def run_policy(self, state: State) -> int:
+    def run_policy(self, state: State, step) -> int:
         """Run the current policy. In this case e-greedy with constant epsilon
 
         Args:
             state (int): agent state
         """
-        if random.random() < self.epsilon:
+        if random.random() < self.epsilon[step]:
             return np.random.choice(range(self.n_actions))
 
         with torch.no_grad():
             return np.argmax(self.Q(self.featurize(state)).cpu()).numpy().item()
+
+    def observe(self, n_step_buffer: List[Tuple[Any]]):
+        """Here is where the Q-update happens.
+
+        NOTE: As we modified the Q-function to output scores for all actions
+        and we want to use the gradients from pytorch we modify the update
+        rule by reframing it as a supervised target for backprop using MSELoss
+
+        Args:
+            state (State): current state
+            action (int): current action
+            reward (float): reward
+            next_state (State): next state (usually denoted as: s')
+            next_action (int): next action (usually denoted as: a')
+        """
+        # FIXME: Adapt to a terminal state observation!
+        n = len(n_step_buffer)
+        state, action, _, _, _ = n_step_buffer[0]
+        next_state, next_action, _, _, _ = n_step_buffer[-1]
+        q_ns = self.Q(self.featurize(next_state))
+        # Compute G_t
+        g = (
+            sum(self.gamma**i * r for i, (_, _, r, _, _) in enumerate(n_step_buffer))
+            + self.gamma**n * q_ns[next_action]
+        )
+        # Reframe as a supervised update
+        q_s = self.Q(self.featurize(state)).detach().clone()
+        target = q_s.detach().clone()
+        target[action] = -g
+
+        logger.debug(f"Q(s,a)={q_s[action]} -> TD:{target[action]}")
+        logger.debug(f"G:{g}")
+
+        # Backprop
+        return self.Q.update(q_s, target)
 
     def learn(
         self,
@@ -159,7 +200,7 @@ class SemiGradientSARSA:
         max_ep_steps: int,
         discount: float,
         epsilon: float,
-        n_step: int = 1,
+        n: int = 4,
     ) -> Dict[str, Any]:
         """Implements the On-policy TD Control algorithm 'n-step Semi Gradient SARSA'
 
@@ -168,17 +209,19 @@ class SemiGradientSARSA:
             max_ep_steps (int): max number of steps per episode
             discount (float): discount factor (gamma)
             epsilon (float): probability of taking a random action (epsilon-greedy)
-            n_step (int): n-step return update target
+            n (int): n-step return update target
         """
         logger.info("Start learning")
         self.gamma = discount
-        self.epsilon = epsilon
-        self.featurize = self.tile_featurize  # set tiling as encoding of states
+        # linearly decaying exploration probability
+        self.epsilon = np.arange(0, epsilon, epsilon / num_episodes)[::-1]
+        # set tiling as encoding of states
+        self.featurize = self.tile_featurize
 
         stats = {
             "ep_length": np.zeros(num_episodes),
             "ep_rewards": np.zeros(num_episodes),
-            "loss": [],
+            "ep_loss": np.zeros(num_episodes),
         }
 
         episode_iter = tqdm(range(num_episodes))
@@ -187,34 +230,35 @@ class SemiGradientSARSA:
 
             # Init S & chose A from S using policy derived from Q
             state, _ = self.env.reset()
-            action = self.run_policy(state)
+            action = self.run_policy(state, ep_i)
 
             ep_loss = []
-            q_values = []
-            targets = []
-            for i in range(max_ep_steps):
+            n_step_buffer = []
+            for t in range(max_ep_steps):
+
+                if state[0] > 0.4:
+                    logger.notice(f"👀 state: {state}")
+                    self.env.render("human")
+
                 # Take action A, observe S' and R
                 next_state, reward, terminated, truncated, _ = self.env.step(action)
 
                 # Chose A' from S' using policy derived from Q
-                next_action = self.run_policy(next_state)
+                next_action = self.run_policy(next_state, ep_i)
 
-                # NOTE: As we modified the Q-function to output scores for all actions
-                # and we want to use the gradients from pytorch we modify the update
-                # rule by reframing it as a supervised target for backprop using MSELoss
-                q_s = self.Q(self.featurize(state))
-                q_ns = self.Q(self.featurize(next_state))
-                g = reward + self.gamma * q_ns
-                target = q_s.detach().clone()
-                target[action] = g[next_action]
-
-                # TODO: Implement a better batching.
-                # For now: Accumulate for batch update of the Q-network
-                q_values.append(q_s)
-                targets.append(target)
+                if len(n_step_buffer) >= n:
+                    # Update Q-network
+                    loss = self.observe(n_step_buffer)
+                    stats["ep_loss"][ep_i] += loss
+                    n_step_buffer = []
+                else:
+                    # Let the agent observe and update the Q-function
+                    n_step_buffer.append(
+                        (state, action, reward, next_state, next_action)
+                    )
 
                 # Collect some stats
-                stats["ep_length"][ep_i] = i
+                stats["ep_length"][ep_i] = t
                 stats["ep_rewards"][ep_i] += reward
 
                 if terminated or truncated:
@@ -224,23 +268,20 @@ class SemiGradientSARSA:
 
                 state = next_state
 
-            # Update Q-network
-            ep_loss = self.Q.update(torch.vstack(q_values), torch.vstack(targets))
-
             # TODO: Remove
-            if ep_i % 1000 == 0:
+            if ep_i % 50 == 0:
                 self.plot_q_function()
 
-            # Average loss over episode steps
-            stats["loss"].append(np.mean(ep_loss))
+            # TODO: Remove
             ep_r = stats["ep_rewards"][ep_i]
             ep_steps = stats["ep_length"][ep_i]
+            ep_loss = stats["ep_loss"][ep_i]
             logger.debug(
                 f"Episode: {ep_i} -> R:{ep_r} "
                 f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
             )
 
-        # Print the policy over the map
+        # Done!
         self.env.close()
 
         return stats

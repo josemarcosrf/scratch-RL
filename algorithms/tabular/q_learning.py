@@ -99,7 +99,7 @@ class TabularQLearning(TabularAgent):
 
                 state = next_state
 
-        # Print the policy over the map
+        # Done!
         self.env.close()
 
         return stats

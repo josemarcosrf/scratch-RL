@@ -228,7 +228,7 @@ class SemiGradientSARSA:
             ep_steps = stats["ep_length"][ep_i]
             logger.debug(f"Episode: {ep_i} -> R:{ep_r} ({ep_steps} steps)")
 
-        # Print the policy over the map
+        # Done!
         self.env.close()
 
         return stats
