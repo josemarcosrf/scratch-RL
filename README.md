@@ -176,6 +176,8 @@ pip install -r requirements-dev.txt
    python -m algorithms.aproximate.fourier_value_function_random_walk --env-size 1000
    ```
 
+   ![./assets/Fourier-Basis-random-walk.png](assets/Fourier-Basis-random-walk.png "Fourier Basis linear function aproximation")
+
 </details>
 
 <details>

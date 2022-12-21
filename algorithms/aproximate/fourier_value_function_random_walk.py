@@ -136,7 +136,7 @@ def figure_9_5(args):
 
     sg_td = SemiGradientTD(env, value_func, policy)
     sg_td.learn(
-        num_episodes=1000,
+        num_episodes=2000,
         max_ep_steps=2000,
         epsilon=0.5,
         discount=0.95,
