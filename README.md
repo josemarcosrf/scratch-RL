@@ -58,15 +58,17 @@ pip install -r requirements-dev.txt
 
 ### Algorithms
 
-#### Tabular
 
 <details>
-  <summary>SARSA</summary>
+  <summary>Tabular SARSA</summary>
+
+  Episodic **on-policy** TD(0) learning control algorithm with epsilon-greedy policy
+
 
    **Valid environments:**
 
-   - `CliffWalking-v0`
-   - `FrozenLake-v1`
+   - [CliffWalking-v0](https://gymnasium.farama.org/environments/toy_text/cliff_walking/)
+   - [FrozenLake-v1](https://gymnasium.farama.org/environments/toy_text/frozen_lake/#frozen-lake)
 
    **Examples:**
 
@@ -109,12 +111,14 @@ pip install -r requirements-dev.txt
 
 
 <details>
-  <summary>Q-learning</summary>
+  <summary>Tabular Q-learning</summary>
+
+   Episodic **off-policy** TD(0) learning control algorithm with epsilon-greedy policy
 
    **Valid environments:**
 
-   - `CliffWalking-v0`
-   - `FrozenLake-v1`
+   - [CliffWalking-v0](https://gymnasium.farama.org/environments/toy_text/cliff_walking/)
+   - [FrozenLake-v1](https://gymnasium.farama.org/environments/toy_text/frozen_lake/#frozen-lake)
 
 
    **Examples:**
@@ -140,9 +144,11 @@ pip install -r requirements-dev.txt
 <details>
   <summary>first-visit Monte Carlo</summary>
 
+  Monte Carlo Conrol with epsilon-greedy policies
+
    **Valid environments:**
 
-   - `Blackjack-v1`
+   - [Blackjack-v1](https://gymnasium.farama.org/environments/toy_text/blackjack/#blackjack)
 
 
    **Examples:**
@@ -153,21 +159,23 @@ pip install -r requirements-dev.txt
    ```
 </details>
 
-
-#### Function aproximation
-
 <details>
-  <summary>Fourier Basis for 1000-step random walk</summary>
+  <summary>Fourier Basis linear aproximation</summary>
+
+  Fourier Basis linear aproximation for value function in the 1000-step random walk
+  environent
 
 </details>
 
-
 <details>
-  <summary>Semi-gradient SARSA</summary>
+  <summary>n-step Semi-gradient SARSA</summary>
+
+  Episodic **on-policy** TD(lambda=0) learning control algorithm with epsilon-greedy
+  policy and function approximation.
 
    **Valid environments:**
 
-   - `MountainCar-v0`
+   - [MountainCar-v0](https://gymnasium.farama.org/environments/classic_control/mountain_car/)
 
 
    **Examples:**
@@ -175,9 +183,10 @@ pip install -r requirements-dev.txt
    ```bash
    # semi-gradient SARSA with neural netowrk function aprox. and tiling
    python -m algorithms.aproximate.semi_gradient_sarsa -e MountainCar-v0 \
-      -ne 500000 \
-      -st 0.5 \
+      -ne 5000 \
+      -st 0.05 \
       -ep 0.1
+   ```
 
 </details>
 
@@ -186,4 +195,5 @@ pip install -r requirements-dev.txt
  - [**Reinforcement Learning:An Introduction - Richard S. Sutton and Andrew G. Barto**](http://incompleteideas.net/book/bookdraft2018jan1.pdf)
  - [michaeloneill RL-tutorial](https://michaeloneill.github.io/RL-tutorial.html)
  - [syyxtl/Reinforcement_learning](https://github.com/syyxtl/Reinforcement_learning/)
+ - [dennybritz/reinforcement-learning](https://github.com/dennybritz/reinforcement-learning)
  - [self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto](https://github.com/self-supervisor/SARSA-Mountain-Car-Sutton-and-Barto)

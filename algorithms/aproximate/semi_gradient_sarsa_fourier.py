@@ -44,7 +44,7 @@ def plot_stats(stats):
 
 
 class FourierLinearQFunction:
-    def __init__(self, obs_size: int = 3, n_params: int = 10):
+    def __init__(self, obs_size: int = 3, n_params: int = 20):
         # Generate a random set of axis frequency vectors.
         c = np.random.randint(size=(n_params + 1, obs_size), low=0, high=n_params)
         self.weights = np.ones(n_params + 1)
@@ -58,6 +58,7 @@ class FourierLinearQFunction:
         x = np.array((*s, a))
         derivate_val = self.features.encode(x)
         self.weights += delta * derivate_val
+        self.weights /= np.max(self.weights)  # clipping
 
 
 class SemiGradientSARSA:
@@ -219,7 +220,7 @@ class SemiGradientSARSA:
                 state = next_state
 
             # TODO: Remove
-            if ep_i % 10 == 0:
+            if ep_i % 1000 == 0:
                 self.plot_q_function()
 
             # Average loss over episode steps
