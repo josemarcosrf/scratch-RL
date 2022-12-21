@@ -160,17 +160,28 @@ pip install -r requirements-dev.txt
 </details>
 
 <details>
-  <summary>Fourier Basis linear aproximation</summary>
+  <summary>Fourier Basis linear function aproximation</summary>
 
-  Fourier Basis linear aproximation for value function in the 1000-step random walk
-  environent
+  Fourier Basis linear fucntion aproximation to estimate the value-function
+  in the N-step random walk environent.
+
+   **Valid environments:**
+
+   - [random_1D_walk](helpers/environment/random_1D_walk.py)
+
+
+   **Examples:**
+
+   ```bash
+   python -m algorithms.aproximate.fourier_value_function_random_walk --env-size 1000
+   ```
 
 </details>
 
 <details>
   <summary>n-step Semi-gradient SARSA</summary>
 
-  Episodic **on-policy** TD(lambda=0) learning control algorithm with epsilon-greedy
+  Episodic **on-policy** TD(0) learning control algorithm with epsilon-greedy
   policy and function approximation.
 
    **Valid environments:**
@@ -189,6 +200,32 @@ pip install -r requirements-dev.txt
    ```
 
 </details>
+
+<details>
+  <summary>Expected SARSA</summary>
+
+  `Expected SARSA` is a unification of `SARSA` and `Q-learning`.
+  This algorithm can be both _on-policy_ or _off-policy_
+  (by having a behaviour and a target policy).
+  Works both _episodic_ and _continuing_ tasks and can be implmemented in a
+  _tabular_ form or with approximation like the _semi-gradient_ version.
+
+  When used along with a epsilon-greedy behaviour policy and with a greedy target
+  policy, then becomes equivalent to `Q-learning`.
+  if the
+
+  > TBD
+
+</details>
+
+<details>
+  <summary>SARSA(lambda) - eligibility traces</summary>
+
+
+  > TBD
+
+</details>
+
 
 ## References and Implementations
 
