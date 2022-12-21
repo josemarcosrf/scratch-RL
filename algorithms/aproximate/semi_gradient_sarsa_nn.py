@@ -67,6 +67,7 @@ class SemiGradientSARSA:
         self.num_tilings = num_tilings
         self.boundaries = list(zip(box.low, box.high))
         self.iht = IHT(self.tiling_size)
+        self.featurize = self.tile_featurize
         # Q-value approximate function
         # Note: instead of having Q: SxA -> R this implements Q: S -> R^|A|
         # This is: The network takes a given state S and outputs scores
@@ -92,23 +93,25 @@ class SemiGradientSARSA:
             for (l, h) in zip(box.low, box.high):
                 step_size = (h - l) / self.num_tilings / 10
                 ranges.append(np.arange(l, h, step_size))
-
         x, y = np.meshgrid(*ranges)
-        # Compute the Q-values and the get max ovver actions as the State value
+
+        # Compute the Q-values
         states = list(product(*ranges))
         with torch.no_grad():
-            z = (
-                self.Q(self.featurize(states))
-                .cpu()
-                .numpy()
-                .max(axis=-1)
-                .reshape(x.shape)
-            )
+            q = self.Q(self.featurize(states)).cpu().numpy()
+
+        # Max over actions as the State value
+        z = q.max(axis=-1).reshape(x.shape)
+
+        # Colorize the plot based on the chose action
+        rgb = [(1, 0, 0, 0.3), (0.3, 0.3, 0.3, 0.3), (0, 0, 1, 0.3)]
+        colors = np.array([rgb[i] for i in q.argmax(axis=-1)]).reshape((*x.shape, 4))
+
         # Plot
         self.fig.clear()
         ax = self.fig.add_subplot(111, projection="3d")
         ax.set_title("Q-value function")
-        ax.plot_surface(x, y, z, cmap="viridis", edgecolor="green")
+        ax.plot_surface(x, y, z, cmap="viridis", edgecolor="green", facecolors=colors)
         plt.draw()
         plt.pause(0.001)
 
@@ -184,12 +187,9 @@ class SemiGradientSARSA:
             + self.gamma**n * q_ns[next_action]
         )
         # Reframe as a supervised update
-        q_s = self.Q(self.featurize(state)).detach().clone()
+        q_s = self.Q(self.featurize(state))
         target = q_s.detach().clone()
-        target[action] = -g
-
-        logger.debug(f"Q(s,a)={q_s[action]} -> TD:{target[action]}")
-        logger.debug(f"G:{g}")
+        target[action] = g
 
         # Backprop
         return self.Q.update(q_s, target)
@@ -215,8 +215,6 @@ class SemiGradientSARSA:
         self.gamma = discount
         # linearly decaying exploration probability
         self.epsilon = np.arange(0, epsilon, epsilon / num_episodes)[::-1]
-        # set tiling as encoding of states
-        self.featurize = self.tile_featurize
 
         stats = {
             "ep_length": np.zeros(num_episodes),
@@ -236,9 +234,8 @@ class SemiGradientSARSA:
             n_step_buffer = []
             for t in range(max_ep_steps):
 
-                if state[0] > 0.4:
+                if state[0] > 0.3:
                     logger.notice(f"👀 state: {state}")
-                    self.env.render("human")
 
                 # Take action A, observe S' and R
                 next_state, reward, terminated, truncated, _ = self.env.step(action)
