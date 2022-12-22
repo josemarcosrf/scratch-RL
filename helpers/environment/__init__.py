@@ -4,6 +4,7 @@ from typing import Tuple
 from typing import Union
 
 import gymnasium as gym
+from gymnasium.wrappers.time_limit import TimeLimit
 
 from helpers.constants import DEFAULT_RANDOM_SEED
 
@@ -118,3 +119,8 @@ def get_env_report_functions(env):
         from helpers.environment.blackjack import print_policy, plot_stats
 
         return print_policy, plot_stats
+
+
+def re_timewrap(env, max_steps: int):
+    env.spec.max_episode_steps = max_steps
+    return TimeLimit(env.unwrapped, max_episode_steps=max_steps)

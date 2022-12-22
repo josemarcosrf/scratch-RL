@@ -27,13 +27,6 @@ from helpers.models import QNetwork
 # mypy: ignore-errors
 
 
-def re_timewrap(env, max_steps: int):
-    from gymnasium.wrappers.time_limit import TimeLimit
-
-    env.spec.max_episode_steps = max_steps
-    return TimeLimit(env.unwrapped, max_episode_steps=max_steps)
-
-
 def plot_stats(stats):
     _, ax = plt.subplots(1, 3)
     # Episode steps
@@ -240,12 +233,8 @@ class SemiGradientSARSA:
             state, _ = self.env.reset()
             action = self.run_policy(state, ep_i)
 
-            ep_loss = []
             n_step_buffer = []
             for t in range(max_ep_steps):
-
-                if state[0] > 0.3:
-                    logger.notice(f"👀 this far! {state}")
 
                 # Take action A, observe S' and R
                 next_state, reward, terminated, truncated, _ = self.env.step(action)
@@ -274,19 +263,20 @@ class SemiGradientSARSA:
                     break
 
                 state = next_state
+                action = next_action
 
             # TODO: Remove
             if ep_i % 50 == 0:
                 self.plot_q_function()
 
-            # TODO: Remove
-            ep_r = stats["ep_rewards"][ep_i]
-            ep_steps = stats["ep_length"][ep_i]
-            ep_loss = stats["ep_loss"][ep_i]
-            logger.debug(
-                f"Episode: {ep_i} -> R:{ep_r} "
-                f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
-            )
+            # # TODO: Remove
+            # ep_r = stats["ep_rewards"][ep_i]
+            # ep_steps = stats["ep_length"][ep_i]
+            # ep_loss = stats["ep_loss"][ep_i]
+            # logger.info(
+            #     f"Episode: {ep_i} -> R:{ep_r} "
+            #     f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
+            # )
 
         # Done!
         self.env.close()
@@ -309,10 +299,6 @@ if __name__ == "__main__":
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
 
-    # FIXME: Remove time re-wrapping
-    env = re_timewrap(env, args.max_episode_steps)
-    logger.debug(f" > env max steps: {env.spec.max_episode_steps}")
-
     logger.info("Initializing agent")
     agent = SemiGradientSARSA(
         env,
@@ -328,7 +314,7 @@ if __name__ == "__main__":
     agent.plot_q_function(block=True)
     plot_stats(stats)
 
-    import pickle
+    # import pickle
 
-    with open("sarsa-mountain-car.pkl", "wb") as f:
-        pickle.dump(agent, f)
+    # with open("sarsa-mountain-car.pkl", "wb") as f:
+    #     pickle.dump(agent, f)

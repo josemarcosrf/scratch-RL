@@ -218,6 +218,7 @@ class SemiGradientSARSA:
                     break
 
                 state = next_state
+                action = next_action
 
             # TODO: Remove
             if ep_i % 1000 == 0:

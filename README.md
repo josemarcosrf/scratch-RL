@@ -186,6 +186,8 @@ pip install -r requirements-dev.txt
   Episodic **on-policy** TD(0) learning control algorithm with epsilon-greedy
   policy and function approximation.
 
+  Uses a `n-step=4` and `tiling` with 8 tiles.
+
    **Valid environments:**
 
    - [MountainCar-v0](https://gymnasium.farama.org/environments/classic_control/mountain_car/)
@@ -197,11 +199,16 @@ pip install -r requirements-dev.txt
    # semi-gradient SARSA with neural netowrk function aprox. and tiling
    python -m algorithms.aproximate.semi_gradient_sarsa_nn \
       -e MountainCar-v0 \
-      --explore-probability 0 \
-      -ne 1000 \
-      -mes 300 \
-      -st .5
+      --explore-probability 0.1 \
+      -ne 5000 \
+      -mes 200 \
+      -st 1e-3
    ```
+
+   The resulting value function. Blue indicates move right, red move left, gray
+   do not move:
+
+   ![./assets/n-step-semi-radient-SARSA_MountainCar-Q-function.png](assets/n-step-semi-radient-SARSA_MountainCar-Q-function.png "NN Q function aproximation")
 
 </details>
 
