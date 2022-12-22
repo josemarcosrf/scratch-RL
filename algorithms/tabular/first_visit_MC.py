@@ -130,7 +130,7 @@ if __name__ == "__main__":
     agent = TabularMonteCarlo(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
-        max_ep_steps=args.num_steps,
+        max_ep_steps=args.max_episode_steps,
         epsilon=args.explore_probability,
     )
 

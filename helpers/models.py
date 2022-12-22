@@ -25,7 +25,6 @@ class QNetwork(nn.Module):
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-        # return F.softmax(x, dim=-1)
 
     def update(self, q_s, target) -> float:
         # Zero the gradients, perform a backward pass, and update the weights

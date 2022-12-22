@@ -19,7 +19,6 @@ from helpers.environment import get_env_action_dims
 from helpers.environment import get_env_action_name_map
 from helpers.environment import get_env_shape
 from helpers.environment import get_env_state_dims
-from helpers.features.fourier import FourierBasis
 from helpers.features.tile_coding import IHT
 from helpers.features.tile_coding import tiles
 from helpers.logio import init_logger
@@ -27,8 +26,12 @@ from helpers.models import QNetwork
 
 # mypy: ignore-errors
 
-# TODO: Implement the exact same but with the tested fourier aproximator
-# TODO: Implement experience reply buffer instead
+
+def re_timewrap(env, max_steps: int):
+    from gymnasium.wrappers.time_limit import TimeLimit
+
+    env.spec.max_episode_steps = max_steps
+    return TimeLimit(env.unwrapped, max_episode_steps=max_steps)
 
 
 def plot_stats(stats):
@@ -85,7 +88,7 @@ class SemiGradientSARSA:
         plt.show()
         self.fig = plt.figure(figsize=(8, 6))
 
-    def plot_q_function(self):
+    def plot_q_function(self, block: bool = False):
         # Generate X, Y coordinates
         ranges = []
         box = self.env.observation_space
@@ -104,6 +107,7 @@ class SemiGradientSARSA:
         z = q.max(axis=-1).reshape(x.shape)
 
         # Colorize the plot based on the chose action
+        # FIXME: These colors are only valid for MountainCar!
         rgb = [(1, 0, 0, 0.3), (0.3, 0.3, 0.3, 0.3), (0, 0, 1, 0.3)]
         colors = np.array([rgb[i] for i in q.argmax(axis=-1)]).reshape((*x.shape, 4))
 
@@ -112,8 +116,13 @@ class SemiGradientSARSA:
         ax = self.fig.add_subplot(111, projection="3d")
         ax.set_title("Q-value function")
         ax.plot_surface(x, y, z, cmap="viridis", edgecolor="green", facecolors=colors)
-        plt.draw()
-        plt.pause(0.001)
+        if block:
+            plt.ioff()
+            plt.show()
+        else:
+            plt.ion()
+            plt.draw()
+            plt.pause(0.001)
 
     @staticmethod
     def poly_featurize(states: Union[State, List[State]]) -> torch.FloatTensor:
@@ -213,8 +222,9 @@ class SemiGradientSARSA:
         """
         logger.info("Start learning")
         self.gamma = discount
-        # linearly decaying exploration probability
-        self.epsilon = np.arange(0, epsilon, epsilon / num_episodes)[::-1]
+        # # linearly decaying exploration probability
+        # self.epsilon = np.arange(0, epsilon, epsilon / num_episodes)[::-1]
+        self.epsilon = np.ones(num_episodes) * epsilon
 
         stats = {
             "ep_length": np.zeros(num_episodes),
@@ -235,7 +245,7 @@ class SemiGradientSARSA:
             for t in range(max_ep_steps):
 
                 if state[0] > 0.3:
-                    logger.notice(f"👀 state: {state}")
+                    logger.notice(f"👀 this far! {state}")
 
                 # Take action A, observe S' and R
                 next_state, reward, terminated, truncated, _ = self.env.step(action)
@@ -299,6 +309,10 @@ if __name__ == "__main__":
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
 
+    # FIXME: Remove time re-wrapping
+    env = re_timewrap(env, args.max_episode_steps)
+    logger.debug(f" > env max steps: {env.spec.max_episode_steps}")
+
     logger.info("Initializing agent")
     agent = SemiGradientSARSA(
         env,
@@ -306,9 +320,15 @@ if __name__ == "__main__":
     )
     stats = agent.learn(
         num_episodes=args.num_episodes,
-        max_ep_steps=args.num_steps,
+        max_ep_steps=args.max_episode_steps,
         discount=args.discount_factor,
         epsilon=args.explore_probability,
+        n=4,
     )
-
+    agent.plot_q_function(block=True)
     plot_stats(stats)
+
+    import pickle
+
+    with open("sarsa-mountain-car.pkl", "wb") as f:
+        pickle.dump(agent, f)

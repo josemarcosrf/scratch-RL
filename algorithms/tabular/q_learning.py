@@ -118,7 +118,7 @@ if __name__ == "__main__":
     agent = TabularQLearning(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
-        max_ep_steps=args.num_steps,
+        max_ep_steps=args.max_episode_steps,
         step_size=args.step_size,
         discount=args.discount_factor,
         epsilon=args.explore_probability,

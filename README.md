@@ -94,7 +94,7 @@ pip install -r requirements-dev.txt
 
    ```bash
    # SARSA on FrozenLake
-   python -m algorithms.tabular.sarsa -e FrozenLake-v1 -ep 0.5 -ne 5000
+   python -m algorithms.tabular.sarsa -e FrozenLake-v1 -ep 0.5 -nep 5000
 
    # Output (policy)
    ┌───────┬───────┬───────┬────┐
@@ -125,7 +125,7 @@ pip install -r requirements-dev.txt
 
    ```bash
    # Q-learning on Frozen lake
-   python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -ne 5000
+   python -m algorithms.tabular.q_learning -e FrozenLake-v1 -ep 0.5 -nep 5000
 
    # Output (policy):
    ┌───────┬───────┬───────┬──────┐
@@ -155,7 +155,7 @@ pip install -r requirements-dev.txt
 
    ```bash
    # first-visit MC on Blackjack
-   python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -ne 500000
+   python -m algorithms.tabular.first_visit_MC -e Blackjack-v1 -ep 0.1 -nep 500000
    ```
 </details>
 
@@ -195,10 +195,12 @@ pip install -r requirements-dev.txt
 
    ```bash
    # semi-gradient SARSA with neural netowrk function aprox. and tiling
-   python -m algorithms.aproximate.semi_gradient_sarsa -e MountainCar-v0 \
-      -ne 5000 \
-      -st 0.05 \
-      -ep 0.1
+   python -m algorithms.aproximate.semi_gradient_sarsa_nn \
+      -e MountainCar-v0 \
+      --explore-probability 0 \
+      -ne 1000 \
+      -mes 300 \
+      -st .5
    ```
 
 </details>

@@ -243,16 +243,11 @@ if __name__ == "__main__":
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
 
-    # # NOTE: Removing the step limit for now!
-    # from gymnasium.wrappers.time_limit import TimeLimit
-
-    # env = TimeLimit(env.unwrapped, max_episode_steps=1000)
-
     logger.info("Initializing agent")
     agent = SemiGradientSARSA(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
-        max_ep_steps=args.num_steps,
+        max_ep_steps=args.max_episode_steps,
         discount=args.discount_factor,
         epsilon=args.explore_probability,
         step_size=args.step_size,
