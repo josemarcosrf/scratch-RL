@@ -100,9 +100,12 @@ class SemiGradientSARSA:
         z = q.max(axis=-1).reshape(x.shape)
 
         # Colorize the plot based on the chose action
-        # FIXME: These colors are only valid for MountainCar!
-        rgb = [(1, 0, 0, 0.3), (0.3, 0.3, 0.3, 0.3), (0, 0, 1, 0.3)]
-        colors = np.array([rgb[i] for i in q.argmax(axis=-1)]).reshape((*x.shape, 4))
+        # NOTE: These colors only make sense for MountainCar!
+        gray = (0.3, 0.3, 0.3, 0.3)
+        rgb = {0: (1, 0, 0, 0.3), 2: (0, 0, 1, 0.3)}
+        colors = np.array([rgb.get(i, gray) for i in q.argmax(axis=-1)]).reshape(
+            (*x.shape, 4)
+        )
 
         # Plot
         self.fig.clear()
@@ -116,21 +119,6 @@ class SemiGradientSARSA:
             plt.ion()
             plt.draw()
             plt.pause(0.001)
-
-    @staticmethod
-    def poly_featurize(states: Union[State, List[State]]) -> torch.FloatTensor:
-        """Sort of polinomial features. i.e: [x, y, x * y, x**2, y**2]"""
-
-        def _feat(state):
-            _state = list(state)
-            return torch.FloatTensor(
-                _state + [s1 * s2 for s1 in _state for s2 in _state]
-            )
-
-        if isinstance(states, list):
-            return torch.vstack([_feat(s) for s in states])
-
-        return _feat(states)
 
     def tile_featurize(self, states: Union[State, List[State]]) -> torch.FloatTensor:
         def _feat(state):
@@ -268,15 +256,6 @@ class SemiGradientSARSA:
             # TODO: Remove
             if ep_i % 50 == 0:
                 self.plot_q_function()
-
-            # # TODO: Remove
-            # ep_r = stats["ep_rewards"][ep_i]
-            # ep_steps = stats["ep_length"][ep_i]
-            # ep_loss = stats["ep_loss"][ep_i]
-            # logger.info(
-            #     f"Episode: {ep_i} -> R:{ep_r} "
-            #     f"[loss: {ep_loss:.4f}] ({ep_steps} steps)"
-            # )
 
         # Done!
         self.env.close()

@@ -197,7 +197,7 @@ pip install -r requirements-dev.txt
 
    ```bash
    # semi-gradient SARSA with neural netowrk function aprox. and tiling
-   python -m algorithms.aproximate.semi_gradient_sarsa_nn \
+   python -m algorithms.aproximate.n_step_semi_gradient_sarsa_nn \
       -e MountainCar-v0 \
       --explore-probability 0.1 \
       -ne 5000 \
