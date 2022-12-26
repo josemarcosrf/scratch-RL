@@ -167,13 +167,13 @@ class SemiGradientSARSA:
             next_action (int): next action (usually denoted as: a')
         """
         # FIXME: Adapt to a terminal state observation!
-        n = len(n_step_buffer)
+        n = len(n_step_buffer) - 1
         state, action, _, _, _ = n_step_buffer[0]
         next_state, next_action, _, _, _ = n_step_buffer[-1]
         q_ns = self.Q(self.featurize(next_state))
         # Compute G_t
         g = (
-            sum(self.gamma**i * r for i, (_, _, r, _, _) in enumerate(n_step_buffer))
+            sum(self.gamma**i * r for i, (_, _, r, _, _) in enumerate(n_step_buffer[:-1]))
             + self.gamma**n * q_ns[next_action]
         )
         # Reframe as a supervised update
