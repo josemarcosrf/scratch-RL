@@ -13,12 +13,11 @@ self contained and in a single file aand with as little abstraction as possible.
    * [Install](#install)
    * [Run](#run)
       * [Algorithms](#algorithms)
-         * [Tabular](#tabular)
-         * [Function aproximation](#function-aproximation)
+      * [Extras](#extras)
    * [References and Implementations](#references-and-implementations)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: ubuntu, at: Tue Dec 20 11:02:45 UTC 2022 -->
+<!-- Added by: ubuntu, at: Thu Dec 29 19:47:33 UTC 2022 -->
 
 <!--te-->
 
@@ -236,6 +235,11 @@ pip install -r requirements-dev.txt
   > TBD
 
 </details>
+
+
+### Extras
+
+The [extras](extras) directory contains additional self-contained experiments and exercises in easy to run jupyter notebooks. 
 
 
 ## References and Implementations
