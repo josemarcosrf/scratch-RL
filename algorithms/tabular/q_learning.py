@@ -1,9 +1,9 @@
-import logging
 import random
 from typing import Any
 from typing import Dict
 
 import numpy as np
+from loguru import logger
 from tqdm.auto import tqdm
 
 from algorithms import fix_state
@@ -13,22 +13,20 @@ from algorithms.tabular import TabularAgent
 from helpers.cli import get_cli_parser
 from helpers.environment import get_env
 from helpers.environment import get_env_report_functions
-from helpers.io import init_logger
+from helpers.logio import init_logger
 
 # mypy: ignore-errors
 
 
-logger = logging.getLogger(__name__)
-
-
 class TabularQLearning(TabularAgent):
-    def __init__(self, env):
-        """Initializes a Q-learning Tabular agent for the given environment.
+    """On-policy TD Control Q-learning Tabular agent for episodic environments.
 
-        For simplicity we are assuming the following:
-         - actions range from 0 to n_actions
-         - There's no step-size scheduling (remains constant)
-        """
+    For simplicity we are assuming the following:
+        - actions range from 0 to n_actions
+        - There's no step-size scheduling (remains constant)
+    """
+
+    def __init__(self, env):
         super().__init__(env)
         logger.debug(f"Q has shape: {self.Q.shape}")
 
@@ -55,7 +53,8 @@ class TabularQLearning(TabularAgent):
         epsilon: float,
         step_size: float,
     ) -> Dict[str, Any]:  # type: ignore
-        """Implements the Off-policy TD Control algorithm 'Tabular Q-learning'
+        """Implements the Off-policy TD Control learning algorithm learning
+        'Tabular Q-learning'
 
         Args:
             num_episodes (int): max number of episodes
@@ -100,7 +99,7 @@ class TabularQLearning(TabularAgent):
 
                 state = next_state
 
-        # Print the policy over the map
+        # Done!
         self.env.close()
 
         return stats
@@ -110,7 +109,7 @@ if __name__ == "__main__":
 
     args = get_cli_parser("Q-learning options").parse_args()
 
-    init_logger(level=args.log_level, my_logger=logger)
+    init_logger(level=args.log_level, logger=logger)
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     agent = TabularQLearning(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
-        max_ep_steps=args.num_steps,
+        max_ep_steps=args.max_episode_steps,
         step_size=args.step_size,
         discount=args.discount_factor,
         epsilon=args.explore_probability,

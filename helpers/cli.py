@@ -39,21 +39,21 @@ def make_learn_options(parser: argparse.ArgumentParser):
     parser.add_argument_group("Learning options")
     parser.add_argument(
         "--num-episodes",
-        "-ne",
+        "-nep",
         type=int,
         default=DEFAULT_NUM_EPISODES,
         help="The max number of learning episodes",
     )
     parser.add_argument(
-        "--num-steps",
-        "-ns",
+        "--max-episode-steps",
+        "-mes",
         type=int,
         default=DEFAULT_MAX_EP_STEPS,
         help="The max number of learning steps per episode",
     )
     parser.add_argument(
         "--step-size",
-        "-st",
+        "-sts",
         type=float,
         default=DEFAULT_STEP_SIZE,
         help="learning step size parameter (alpha)",

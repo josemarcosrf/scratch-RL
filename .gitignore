@@ -74,3 +74,6 @@ MANIFEST
 
 # Logs
 logs/
+
+# pickled files
+*.pkl

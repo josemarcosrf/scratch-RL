@@ -20,8 +20,13 @@ The first argument is either an index hash table of a given size (created by (ma
 an integer "size" (range of the indices from 0), or nil (for testing, indicating that the tile
 coordinates are to be returned without being converted to indices).
 """
+from itertools import zip_longest
+from math import floor
+from math import log
 
 basehash = hash
+
+# More information @ http://incompleteideas.net/tiles/tiles3.html
 
 
 class IHT:
@@ -76,10 +81,6 @@ def hashcoords(coordinates, m, readonly=False):
         return basehash(tuple(coordinates)) % m
     if m is None:
         return coordinates
-
-
-from math import floor, log
-from itertools import zip_longest
 
 
 def tiles(ihtORsize, numtilings, floats, ints=[], readonly=False):

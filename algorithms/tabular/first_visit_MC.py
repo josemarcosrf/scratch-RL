@@ -1,4 +1,3 @@
-import logging
 import random
 from typing import Any
 from typing import Dict
@@ -6,6 +5,7 @@ from typing import List
 from typing import Tuple
 
 import numpy as np
+from loguru import logger
 from tqdm.auto import tqdm
 
 from algorithms import State
@@ -14,20 +14,19 @@ from algorithms.tabular import TabularAgent
 from helpers.cli import get_cli_parser
 from helpers.environment import get_env
 from helpers.environment import get_env_report_functions
-from helpers.io import init_logger
+from helpers.logio import init_logger
 
 # mypy: ignore-errors
 
 
-logger = logging.getLogger(__name__)
-
-
 class TabularMonteCarlo(TabularAgent):
+    """Tabular first-visit Monte Carlo agent for episodic environments.
+
+    For simplicity we are assuming the following:
+        - actions range from 0 to n_actions
+    """
+
     def __init__(self, env):
-        """Initializes a tabular first-visit Monte Carlo agent for the given environment.
-        For simplicity we are assuming the following:
-         - actions range from 0 to n_actions
-        """
         super().__init__(env)
         self.Q = np.zeros(self.Q.shape)
         self.G = np.zeros(self.Q.shape)  # rewards accumulator
@@ -122,7 +121,7 @@ if __name__ == "__main__":
 
     args = get_cli_parser("Monte Carlo learning options").parse_args()
 
-    init_logger(level=args.log_level, my_logger=logger)
+    init_logger(level=args.log_level, logger=logger)
 
     logger.info("Initializing environment")
     env = get_env(args.env_name, render_mode=args.render_mode)
@@ -131,7 +130,7 @@ if __name__ == "__main__":
     agent = TabularMonteCarlo(env)
     stats = agent.learn(
         num_episodes=args.num_episodes,
-        max_ep_steps=args.num_steps,
+        max_ep_steps=args.max_episode_steps,
         epsilon=args.explore_probability,
     )
 

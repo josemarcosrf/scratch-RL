@@ -4,6 +4,7 @@ from typing import Tuple
 from typing import Union
 
 import gymnasium as gym
+from gymnasium.wrappers.time_limit import TimeLimit
 
 from helpers.constants import DEFAULT_RANDOM_SEED
 
@@ -51,6 +52,14 @@ ENV_META: Dict[str, Dict[str, Any]] = {
             "desc": ["SFFF", "FHFH", "FFFH", "HFFG"],
         },
     },
+    "MountainCar-v0": {
+        "action_map": {
+            0: "accelerate left",
+            1: "don't accelerate",
+            2: "accelerate right",
+        },
+        "params": {},
+    },
 }
 
 
@@ -72,6 +81,8 @@ def get_env_name(env):
 def get_env_state_dims(env) -> Union[int, Tuple[int, ...]]:
     if isinstance(env.observation_space, gym.spaces.tuple.Tuple):
         return tuple(d.n for d in env.observation_space)
+    if isinstance(env.observation_space, gym.spaces.box.Box):
+        return env.observation_space.shape
 
     return env.observation_space.n
 
@@ -108,3 +119,8 @@ def get_env_report_functions(env):
         from helpers.environment.blackjack import print_policy, plot_stats
 
         return print_policy, plot_stats
+
+
+def re_timewrap(env, max_steps: int):
+    env.spec.max_episode_steps = max_steps
+    return TimeLimit(env.unwrapped, max_episode_steps=max_steps)
